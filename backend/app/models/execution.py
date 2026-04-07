@@ -1,20 +1,21 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any , List, Optional
 
 
 class ExecutionRequest(BaseModel):
     code: str
-
 
 class Snapshot(BaseModel):
     step: int
     event: str
     line_no: int
     function: str
-    locals: Dict[str, Any]
+    stack: List[str]
 
+    locals: Optional[Dict[str, Any]] = None
+    delta: Optional[Dict[str, Any]] = None
+    is_full: bool
 
-from typing import List, Dict, Any
 
 class ExecutionResponse(BaseModel):
     session_id: str

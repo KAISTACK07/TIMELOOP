@@ -34,6 +34,7 @@ def worker_main(code, conn):
         conn.send({
             "snapshots": tracer.snapshots,
             "variable_history": tracer.variable_history,
+            "line_index": tracer.line_index,
             "truncated": tracer.truncated,
             "error": error
         })

@@ -43,6 +43,7 @@ class ExecutionEngine:
             "session_id": str(uuid.uuid4()),
             "snapshots": result.get("snapshots", []),
             "variable_history": result.get("variable_history", {}),
+            "line_index": result.get("line_index", {}),
             "truncated": result.get("truncated", True),
             "error": result.get("error")
         }
