@@ -5,38 +5,29 @@ from .sandbox import get_sandbox_globals
 
 def worker_main(code, conn):
 
-    # import resource
-
-    # resource.setrlimit(
-    #     resource.RLIMIT_AS,
-    #     (200 * 1024 * 1024, 200 * 1024 * 1024)
-    # )
-
     tracer = Tracer()
     sandbox_globals = get_sandbox_globals()
 
     error = None
 
+    # attach tracer BEFORE execution
+    sys.settrace(tracer.trace)
+
     try:
-        # attach tracer
-        sys.settrace(tracer.trace)
-
-        # execute user code
-        exec(code, sandbox_globals)
-
+        exec(code, sandbox_globals, sandbox_globals)
     except Exception as e:
         error = type(e).__name__ + ": " + str(e)
 
-    finally:
-        # stop tracing
-        sys.settrace(None)
+    # detach tracer AFTER execution
+    sys.settrace(None)
 
-        conn.send({
-            "snapshots": tracer.snapshots,
-            "variable_history": tracer.variable_history,
-            "line_index": tracer.line_index,
-            "truncated": tracer.truncated,
-            "error": error
-        })
+    # send results
+    conn.send({
+        "snapshots": tracer.snapshots,
+        "variable_history": tracer.variable_history,
+        "line_index": tracer.line_index,
+        "truncated": tracer.truncated,
+        "error": error
+    })
 
-        conn.close()
+    conn.close()

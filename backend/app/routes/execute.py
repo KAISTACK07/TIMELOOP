@@ -91,3 +91,27 @@ def jump_to_line(session_id: str, line: int):
         "line": line,
         "steps": steps
     }        
+@router.get("/exceptions")
+def get_exceptions(session_id: str):
+    if session_id not in SESSION_STORE:
+        return {"error": "Invalid session_id"}
+
+    session = SESSION_STORE[session_id]
+    snapshots = session["snapshots"]
+
+    exceptions = []
+
+    # for snap in snapshots:
+    #     if snap["event"] == "exception":
+    #         exceptions.append({
+    #             "step": snap["step"],
+    #             "line": snap["line_no"],
+    #             "function": snap["function"]
+    #         })
+    for snap in snapshots:
+        if snap["event"] == "exception":
+            print("FOUND EXCEPTION:", snap)        
+
+    return {
+        "exceptions": exceptions
+    }    

@@ -43,16 +43,18 @@ class Tracer:
     def trace(self, frame, event, arg):
 
         self._check_depth(frame)
+        
 
         # Only care about relevant events
         if event not in ("line", "return", "exception","call"):
             return self.trace
 
-        #  STEP CONTROL (clean + consistent)
-        if event == "line":
-            self.step += 1
+        # Convert module return into line event (captures final state correctly)
+        if event == "return" and frame.f_code.co_name == "<module>":
+            event = "line"    
 
-        elif event == "return":
+        #  STEP CONTROL (clean + consistent)
+        if event in ("line", "call", "return", "exception"):
             self.step += 1
 
         function_name = frame.f_code.co_name
@@ -65,8 +67,9 @@ class Tracer:
             if k == "__builtins__":
                 continue
             locals_dict[k] = safe_serialize(v)
-
+        
         curr = locals_dict.copy()
+        
 
         # Skip useless first empty snapshot
         if not self.snapshots and not curr:
@@ -92,7 +95,7 @@ class Tracer:
                 clean_stack.append(name)
 
         stack = clean_stack
-
+        
         snapshot = {
             "step": self.step,
             "event": event,
@@ -109,7 +112,8 @@ class Tracer:
         else:
             delta = self.compute_delta(self.prev_locals, curr)
 
-            if not delta:
+            # DO NOT skip if exception
+            if not delta and event not in ("exception", "return"):
                 return self.trace
 
             snapshot["delta"] = delta
@@ -122,7 +126,16 @@ class Tracer:
                 snapshot["locals"]["error"] = str(exc_value)
             else:
                 snapshot["delta"]["error"] = str(exc_value)
+        # Skip duplicate line events with same state
+        if self.snapshots:
+            last = self.snapshots[-1]
 
+            if (
+                last["line_no"] == snapshot["line_no"]
+                and last["function"] == snapshot["function"]
+                and last.get("delta") == snapshot.get("delta")
+            ):
+                return self.trace
         self.snapshots.append(snapshot)
         line_no = snapshot["line_no"]
 
