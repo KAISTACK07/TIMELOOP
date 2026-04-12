@@ -1,31 +1,35 @@
+import bisect
+
 def reconstruct_state(snapshots, target_step):
-    state = {}
-    print("DEBUG target_step:", target_step, type(target_step))
-    # 1. Find latest checkpoint BEFORE target_step
-    checkpoint = None
+    if not snapshots:
+        return {}
 
-    for snap in snapshots:
-        print("DEBUG snap step:", snap.get("step"), type(snap.get("step")))
-        if snap["step"] > target_step:
-            break
+    # Extract steps list
+    steps = [snap["step"] for snap in snapshots]
 
-        if snap.get("is_full"):
-            checkpoint = snap
+    # Binary search to find closest index <= target_step
+    idx = bisect.bisect_right(steps, target_step) - 1
 
-    # 2. Initialize state
-    if checkpoint:
-        state = dict(checkpoint.get("locals", {}))
-        start_step = checkpoint["step"]
-    else:
-        state = {}
-        start_step = 0
+    if idx < 0:
+        return {}
 
-    # 3. Apply deltas forward
-    for snap in snapshots:
-        if snap["step"] <= start_step:
-            continue
+    # Walk backward to find nearest checkpoint
+    while idx >= 0 and not snapshots[idx].get("is_full"):
+        idx -= 1
 
-        if snap["step"] > target_step:
+    if idx < 0:
+        return {}
+
+    checkpoint = snapshots[idx]
+    state = dict(checkpoint.get("locals", {}))
+    start_step = checkpoint["step"]
+
+    # Apply deltas forward from checkpoint
+    for i in range(idx + 1, len(snapshots)):
+        snap = snapshots[i]
+        step_val = snap["step"]
+
+        if step_val > target_step:
             break
 
         delta = snap.get("delta", {})

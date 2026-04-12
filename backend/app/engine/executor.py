@@ -7,13 +7,13 @@ from .limits import EXECUTION_TIMEOUT
 
 class ExecutionEngine:
 
-    def run(self, code: str):
+    def run(self, code: str, mode: str = "fast"):
 
         parent_conn, child_conn = Pipe()
 
         process = Process(
             target=worker_main,
-            args=(code, child_conn)
+            args=(code, child_conn, mode)
         )
 
         process.start()
@@ -22,10 +22,13 @@ class ExecutionEngine:
 
         if process.is_alive():
             process.terminate()
+            process.join()  # ← CRITICAL
 
             return {
                 "session_id": str(uuid.uuid4()),
                 "snapshots": [],
+                "variable_history": {},
+                "line_index": {},
                 "truncated": True,
                 "error": "Execution timeout"
             }

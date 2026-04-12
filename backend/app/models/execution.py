@@ -1,9 +1,11 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any , List, Optional
+from typing import List, Dict, Any, Optional
 
 
 class ExecutionRequest(BaseModel):
     code: str
+    mode: Optional[str] = "fast"
+
 
 class Snapshot(BaseModel):
     step: int
@@ -21,4 +23,6 @@ class ExecutionResponse(BaseModel):
     session_id: str
     snapshots: List[Snapshot]
     variable_history: Dict[str, Any] = {}
+    line_index: Dict[int, List[int]] = {}
     truncated: bool
+    error: Optional[str] = None

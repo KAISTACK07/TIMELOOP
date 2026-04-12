@@ -9,14 +9,18 @@ SESSION_STORE = {}
 @router.post("/execute", response_model=ExecutionResponse)
 def execute(payload: ExecutionRequest):
     engine = ExecutionEngine()
-    result = engine.run(payload.code)
-
-    #  store snapshots using session_id
+    result = engine.run(payload.code, payload.mode)
     SESSION_STORE[result["session_id"]] = {
-    "snapshots": result["snapshots"],
-    "variable_history": result["variable_history"],
-    "line_index": result["line_index"]
-    }
+    **result,
+    "mode": payload.mode
+}
+    from app.utils.storage import save_session
+
+    save_session(result["session_id"], {
+        "snapshots": result["snapshots"],
+        "variable_history": result["variable_history"],
+        "line_index": result["line_index"]
+    })
     return result
 
 from fastapi import Query
@@ -26,15 +30,30 @@ from app.engine.reconstruction import reconstruct_state
 
 @router.get("/state")
 def get_state(session_id: str = Query(...), step: int = Query(...)):
-    if session_id not in SESSION_STORE:
+    from app.utils.storage import load_session
+
+    session = load_session(session_id)
+    if not session:
         return {"error": "Invalid session_id"}
 
-    snapshots = SESSION_STORE[session_id]
+    snapshots = session["snapshots"]
 
-    if step < 0 or step >= len(snapshots):
+    # validate step using set (fast + correct)
+    steps = {snap["step"] for snap in snapshots}
+    available_steps = sorted(snap["step"] for snap in snapshots)
+
+    # find closest step <= requested step
+    valid_step = None
+    for s in available_steps:
+        if s <= step:
+            valid_step = s
+        else:
+            break
+
+    if valid_step is None:
         return {"error": "Invalid step"}
 
-    state = reconstruct_state(snapshots, step)
+    state = reconstruct_state(snapshots, valid_step)
 
     return {
         "step": step,
@@ -59,59 +78,103 @@ def get_variable_history(session_id: str, name: str):
         "history": formatted_history
     }
 @router.get("/function-calls")
-def get_function_calls(session_id: str, name: str):
+def get_function_calls(session_id: str = Query(...), name: str = Query(...)):
+    # 1. Validate session
     if session_id not in SESSION_STORE:
         return {"error": "Invalid session_id"}
 
     session = SESSION_STORE[session_id]
-    snapshots = session["snapshots"]
+    snapshots = session.get("snapshots", [])
 
+    # 2. FAST mode guard
+    if not snapshots or len(snapshots) <= 1:
+        return {
+            "error": "Detailed tracing required for function analysis"
+        }
+
+    # 3. Extract function calls
     calls = []
 
     for snap in snapshots:
-        if snap["event"] == "call" and snap["function"] == name:
-            calls.append(snap["step"])
+        if snap.get("event") == "call" and snap.get("function") == name:
+            calls.append(snap.get("step"))
 
+    # 4. Handle no calls found
+    if not calls:
+        return {
+            "function": name,
+            "calls": [],
+            "message": "No calls found for this function"
+        }
+
+    # 5. Return result
     return {
         "function": name,
         "calls": calls
-    } 
-@router.get("/jump-to-line")
-def jump_to_line(session_id: str, line: int):
+    }
+
+
+@router.get("/line")
+def get_line_steps(
+    session_id: str = Query(...),
+    line_no: int = Query(...)
+):
+    # 1. Validate session
     if session_id not in SESSION_STORE:
         return {"error": "Invalid session_id"}
 
     session = SESSION_STORE[session_id]
+    snapshots = session.get("snapshots", [])
 
+    # 2. FAST mode guard (important)
+    if session.get("mode") == "fast":
+        return {
+            "line": line_no,
+            "steps": [],
+            "message": "Line tracking not available in fast mode"
+        }
+    # 3. Get line index
     line_index = session.get("line_index", {})
 
-    steps = line_index.get(line, [])
+    steps = line_index.get(str(line_no)) or line_index.get(line_no)
 
+    # 4. Line not executed
+    if not steps:
+        return {
+            "line": line_no,
+            "steps": [],
+            "message": "Line not executed"
+        }
+
+    # 5. Success
     return {
-        "line": line,
+        "line": line_no,
         "steps": steps
-    }        
+    }     
 @router.get("/exceptions")
 def get_exceptions(session_id: str):
     if session_id not in SESSION_STORE:
         return {"error": "Invalid session_id"}
 
     session = SESSION_STORE[session_id]
-    snapshots = session["snapshots"]
+    snapshots = session.get("snapshots", [])
 
-    exceptions = []
+    errors = []
 
-    # for snap in snapshots:
-    #     if snap["event"] == "exception":
-    #         exceptions.append({
-    #             "step": snap["step"],
-    #             "line": snap["line_no"],
-    #             "function": snap["function"]
-    #         })
     for snap in snapshots:
-        if snap["event"] == "exception":
-            print("FOUND EXCEPTION:", snap)        
+        if snap.get("event") == "exception":
+            errors.append({
+                "step": snap.get("step"),
+                "line_no": snap.get("line_no"),
+                "error": snap.get("delta", {}).get("error")
+            })
+
+    if not errors:
+        return {
+            "exceptions": [],
+            "message": "No exceptions occurred"
+        }
 
     return {
-        "exceptions": exceptions
-    }    
+        "exceptions": errors
+    }   

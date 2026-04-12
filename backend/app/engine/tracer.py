@@ -1,12 +1,13 @@
 import sys
 from .serializer import safe_serialize
 
-DEFAULT_MAX_STEPS = 5000
+DEFAULT_MAX_STEPS = 20000
 DEFAULT_MAX_DEPTH = 1000
 
 
 class Tracer:
-    def __init__(self, max_steps=DEFAULT_MAX_STEPS, max_depth=DEFAULT_MAX_DEPTH):
+    def __init__(self, mode="fast", max_steps=DEFAULT_MAX_STEPS, max_depth=DEFAULT_MAX_DEPTH):
+        self.mode = mode
         self.snapshots = []
         self.step = 0
         self.truncated = False
@@ -45,30 +46,63 @@ class Tracer:
         self._check_depth(frame)
         
 
-        # Only care about relevant events
-        if event not in ("line", "return", "exception","call"):
-            return self.trace
+        # --- Dual mode event filtering ---
 
-        # Convert module return into line event (captures final state correctly)
+        # Convert module return into line   event
+        # HARD LIMIT for FAST mode
+        if self.mode == "fast":
+            if self.step > 2000:
+                self.truncated = True
+                raise StopIteration("Fast mode step limit reached")
         if event == "return" and frame.f_code.co_name == "<module>":
-            event = "line"    
+            event = "line"
 
-        #  STEP CONTROL (clean + consistent)
-        if event in ("line", "call", "return", "exception"):
-            self.step += 1
+        if self.mode == "fast":
+            if event == "call":
+                if frame.f_code.co_filename != "<string>":
+                    return self.trace
+
+            elif event == "line":
+                # allow only global scope
+                if frame.f_code.co_name != "<module>":
+                    return self.trace
+
+            elif event != "exception":
+                return self.trace
+
+        else:  # detailed mode
+            if event not in ("line", "call", "return", "exception"):
+                return self.trace 
+        
+        self.step += 1
 
         function_name = frame.f_code.co_name
         if function_name == "<module>":
             function_name = "global"
-
+        
         #  Serialize locals
         locals_dict = {}
         for k, v in dict(frame.f_locals).items():
             if k == "__builtins__":
                 continue
-            locals_dict[k] = safe_serialize(v)
+            if k in ("globals", "locals", "fromlist", "level", "ALLOWED_MODULES"):
+                continue
+            if k.startswith("__"):
+                continue
+            # skip heavy objects
+            if isinstance(v, (int, float, str, bool)):
+                locals_dict[k] = v
+            else:
+                locals_dict[k] = str(type(v).__name__)
         
         curr = locals_dict.copy()
+        
+        # skip if no meaningful change (FAST mode only)
+        if self.mode == "fast" and event == "line":
+            delta = self.compute_delta(self.prev_locals, curr)
+            if not delta:
+                return self.trace
+            
         
 
         # Skip useless first empty snapshot
@@ -159,7 +193,7 @@ class Tracer:
 
                 history = self.variable_history.setdefault(name, [])
                 if not history or history[-1][1] != value:
-                    history.append((current_index, value))
+                   history.append((self.step, value))
 
         #  Update state
         self.prev_locals = curr.copy()
