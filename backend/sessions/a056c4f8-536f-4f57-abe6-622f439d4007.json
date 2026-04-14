@@ -1,1 +1,0 @@
-{"session_id": "a056c4f8-536f-4f57-abe6-622f439d4007", "snapshots": [{"step": 1, "event": "line", "line_no": 0, "function": "global", "stack": ["global"], "locals": {"x": 1}, "delta": null, "is_full": true}], "variable_history": {"x": [[0, 1]]}, "line_index": {"0": [1]}, "truncated": false, "error": null, "mode": "fast"}
