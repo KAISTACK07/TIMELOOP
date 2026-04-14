@@ -1,0 +1,1 @@
+{"snapshots": [{"step": 1, "event": "line", "line_no": 0, "function": "global", "stack": ["global"], "locals": {"x": 10, "y": 20}, "delta": null, "is_full": true}], "variable_history": {"x": [[0, 10]], "y": [[0, 20]]}, "line_index": {"0": [1]}}

@@ -1,27 +1,36 @@
 from fastapi import APIRouter
 from app.models.execution import ExecutionRequest, ExecutionResponse
 from app.engine.executor import ExecutionEngine
-
+from app.store import SESSION_STORE
+from app.utils.session_manager import get_session
 router = APIRouter()
-SESSION_STORE = {}
+
 
 
 @router.post("/execute", response_model=ExecutionResponse)
 def execute(payload: ExecutionRequest):
     engine = ExecutionEngine()
-    result = engine.run(payload.code, payload.mode)
-    SESSION_STORE[result["session_id"]] = {
-    **result,
-    "mode": payload.mode
-}
-    from app.utils.storage import save_session
 
-    save_session(result["session_id"], {
-        "snapshots": result["snapshots"],
-        "variable_history": result["variable_history"],
-        "line_index": result["line_index"]
-    })
-    return result
+    # 1. run code
+    result = engine.run(payload.code, payload.mode)
+
+    session_id = result["session_id"]
+
+    # 2. create full session object
+    session_data = {
+        **result,
+        "mode": payload.mode
+    }
+    if len(SESSION_STORE) > 50:
+        SESSION_STORE.pop(next(iter(SESSION_STORE)))
+    # 3. store in memory
+    SESSION_STORE[session_id] = session_data
+
+    # 4. store FULL data to disk
+    from app.utils.storage import save_session
+    save_session(session_id, session_data)
+
+    return session_data
 
 from fastapi import Query
 from app.engine.reconstruction import reconstruct_state
@@ -30,13 +39,12 @@ from app.engine.reconstruction import reconstruct_state
 
 @router.get("/state")
 def get_state(session_id: str = Query(...), step: int = Query(...)):
-    from app.utils.storage import load_session
+    session = get_session(session_id)
 
-    session = load_session(session_id)
     if not session:
         return {"error": "Invalid session_id"}
 
-    snapshots = session["snapshots"]
+    snapshots = session.get("snapshots", [])
 
     # validate step using set (fast + correct)
     steps = {snap["step"] for snap in snapshots}
@@ -56,15 +64,15 @@ def get_state(session_id: str = Query(...), step: int = Query(...)):
     state = reconstruct_state(snapshots, valid_step)
 
     return {
-        "step": step,
+        "step": valid_step,
         "state": state
     }
 @router.get("/variable-history")
 def get_variable_history(session_id: str, name: str):
-    if session_id not in SESSION_STORE:
-        return {"error": "Invalid session_id"}
+    session = get_session(session_id)
 
-    session = SESSION_STORE[session_id]
+    if not session:
+        return {"error": "Invalid session_id"}
     variable_history = session.get("variable_history", {})
     history = variable_history.get(name, [])
 
@@ -80,10 +88,10 @@ def get_variable_history(session_id: str, name: str):
 @router.get("/function-calls")
 def get_function_calls(session_id: str = Query(...), name: str = Query(...)):
     # 1. Validate session
-    if session_id not in SESSION_STORE:
-        return {"error": "Invalid session_id"}
+    session = get_session(session_id)
 
-    session = SESSION_STORE[session_id]
+    if not session:
+        return {"error": "Invalid session_id"}
     snapshots = session.get("snapshots", [])
 
     # 2. FAST mode guard
@@ -120,10 +128,10 @@ def get_line_steps(
     line_no: int = Query(...)
 ):
     # 1. Validate session
-    if session_id not in SESSION_STORE:
-        return {"error": "Invalid session_id"}
+    session = get_session(session_id)
 
-    session = SESSION_STORE[session_id]
+    if not session:
+        return {"error": "Invalid session_id"}
     snapshots = session.get("snapshots", [])
 
     # 2. FAST mode guard (important)
@@ -136,7 +144,7 @@ def get_line_steps(
     # 3. Get line index
     line_index = session.get("line_index", {})
 
-    steps = line_index.get(str(line_no)) or line_index.get(line_no)
+    steps = line_index.get(line_no) or line_index.get(str(line_no))
 
     # 4. Line not executed
     if not steps:
@@ -153,10 +161,10 @@ def get_line_steps(
     }     
 @router.get("/exceptions")
 def get_exceptions(session_id: str):
-    if session_id not in SESSION_STORE:
-        return {"error": "Invalid session_id"}
+    session = get_session(session_id)
 
-    session = SESSION_STORE[session_id]
+    if not session:
+        return {"error": "Invalid session_id"}
     snapshots = session.get("snapshots", [])
 
     errors = []

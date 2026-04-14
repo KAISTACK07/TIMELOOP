@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TimeLoop — Project Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a2e;
+    --text-secondary: #4a4a6a;
+    --accent: #e63946;
+    --accent-light: #fdf0f0;
+    --border: #e8e8f0;
+    --code-bg: #f4f4f8;
+    --heading-color: #0f0f1a;
+    --link: #e63946;
+    --table-header-bg: #1a1a2e;
+    --table-header-text: #ffffff;
+    --table-stripe: #f8f8fc;
+    --blockquote-bg: #fdf6e3;
+    --blockquote-border: #e6a817;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 50px;
+  }
+
+  /* ── Cover / Title ── */
+  h1 {
+    font-size: 28pt;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    font-size: 16pt;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin-top: 36px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 13pt;
+    font-weight: 600;
+    color: var(--heading-color);
+    margin-top: 24px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+
+  h4 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+
+  p {
+    margin-bottom: 12px;
+    text-align: justify;
+  }
+
+  /* ── Links ── */
+  a {
+    color: var(--link);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  a:hover {
+    border-bottom-color: var(--link);
+  }
+
+  /* ── Lists ── */
+  ul, ol {
+    margin-bottom: 14px;
+    padding-left: 24px;
+  }
+  li {
+    margin-bottom: 5px;
+  }
+  li > ul, li > ol {
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  /* ── Code ── */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 9.5pt;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #c7254e;
+  }
+
+  pre {
+    background: #1a1a2e;
+    color: #e0e0f0;
+    padding: 18px 22px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 18px;
+    font-size: 9pt;
+    line-height: 1.6;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  thead th {
+    background: var(--table-header-bg);
+    color: var(--table-header-text);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  thead th:first-child {
+    border-radius: 6px 0 0 0;
+  }
+  thead th:last-child {
+    border-radius: 0 6px 0 0;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) {
+    background: var(--table-stripe);
+  }
+  tbody tr:last-child td:first-child {
+    border-radius: 0 0 0 6px;
+  }
+  tbody tr:last-child td:last-child {
+    border-radius: 0 0 6px 0;
+  }
+
+  /* ── Blockquotes ── */
+  blockquote {
+    border-left: 4px solid var(--blockquote-border);
+    background: var(--blockquote-bg);
+    padding: 14px 20px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    page-break-inside: avoid;
+  }
+  blockquote p {
+    margin-bottom: 0;
+  }
+  blockquote strong {
+    color: var(--text);
+  }
+
+  /* ── Horizontal Rules ── */
+  hr {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* ── Emoji Bullets ── */
+  li strong {
+    color: var(--heading-color);
+  }
+
+  /* ── Print Styles ── */
+  @media print {
+    body {
+      padding: 20px 30px;
+      font-size: 10pt;
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 24pt;
+    }
+    h2 {
+      font-size: 14pt;
+      break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      break-after: avoid;
+    }
+    pre {
+      font-size: 8pt;
+      break-inside: avoid;
+    }
+    table {
+      break-inside: avoid;
+    }
+    blockquote {
+      break-inside: avoid;
+    }
+    a {
+      color: var(--link);
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+
+  /* ── Print Button ── */
+  .print-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+    padding: 14px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .print-bar span {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13pt;
+    letter-spacing: 0.5px;
+  }
+  .print-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    font-size: 11pt;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .print-btn:hover {
+    background: #c62e3a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(230,57,70,0.4);
+  }
+  .spacer {
+    height: 60px;
+  }
+
+  /* ── Footer ── */
+  body > p:last-child {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 10pt;
+  }
+</style>
+</head>
+<body>
+  <div class="print-bar no-print">
+    <span>📄 TimeLoop Documentation</span>
+    <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+  </div>
+  <div class="spacer no-print"></div>
+  <h1 id="timeloop-python-time-travel-debugger">⏳ TimeLoop — Python Time-Travel Debugger</h1>
+<p><strong>TimeLoop</strong> is a web-based time-travel debugger for Python. It lets you write Python code in the browser, execute it on a sandboxed backend, and then step forward and backward through every state change your program made — inspecting variables, call stacks, and execution flow at any point in time.</p>
+<blockquote>
+<p><em>"Where elite developers master execution timelines."</em></p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#architecture-overview">Architecture Overview</a></li>
+<li><a href="#tech-stack">Tech Stack</a></li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#backend-setup">Backend Setup</a></li>
+<li><a href="#frontend-setup">Frontend Setup</a></li>
+<li><a href="#api-reference">API Reference</a></li>
+<li><a href="#post-execute">POST /execute</a></li>
+<li><a href="#get-state">GET /state</a></li>
+<li><a href="#get-variable-history">GET /variable-history</a></li>
+<li><a href="#get-function-calls">GET /function-calls</a></li>
+<li><a href="#get-line">GET /line</a></li>
+<li><a href="#get-exceptions">GET /exceptions</a></li>
+<li><a href="#backend-modules">Backend Modules</a></li>
+<li><a href="#engine">Engine</a><ul>
+<li><a href="#tracer">Tracer</a></li>
+<li><a href="#executor">Executor</a></li>
+<li><a href="#worker">Worker</a></li>
+<li><a href="#sandbox">Sandbox</a></li>
+<li><a href="#serializer">Serializer</a></li>
+<li><a href="#reconstruction">Reconstruction</a></li>
+<li><a href="#limits">Limits</a></li>
+</ul>
+</li>
+<li><a href="#models">Models</a></li>
+<li><a href="#routes">Routes</a></li>
+<li><a href="#utils">Utils</a></li>
+<li><a href="#frontend-components">Frontend Components</a></li>
+<li><a href="#execution-modes">Execution Modes</a></li>
+<li><a href="#security--sandboxing">Security &amp; Sandboxing</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#license">License</a></li>
+</ul>
+<hr />
+<h2 id="features">Features</h2>
+<ul>
+<li>🔄 <strong>Time-Travel Debugging</strong> — Step forward and backward through your Python program's execution history.</li>
+<li>⚡ <strong>Dual Execution Modes</strong> — <em>Fast</em> mode for quick results, <em>Detailed</em> mode for full line-by-line tracing.</li>
+<li>🔍 <strong>Variable Inspector</strong> — View the value of every variable at any point in execution.</li>
+<li>📊 <strong>Variable History</strong> — Track how a variable changes over the entire run.</li>
+<li>🧱 <strong>Call Stack Reconstruction</strong> — See the full call stack at every traced step.</li>
+<li>🛡️ <strong>Sandboxed Execution</strong> — User code runs in a restricted sandbox with whitelisted builtins and modules.</li>
+<li>🗂️ <strong>Session Persistence</strong> — Execution sessions are saved to disk as JSON for later retrieval.</li>
+<li>🏗️ <strong>Delta-Based Snapshots</strong> — Efficient storage using periodic full checkpoints + incremental deltas.</li>
+<li>🐛 <strong>Exception Tracking</strong> — Automatically captures and indexes all exceptions.</li>
+<li>📍 <strong>Line Index</strong> — Look up which execution steps visited a given source line.</li>
+</ul>
+<hr />
+<h2 id="architecture-overview">Architecture Overview</h2>
+<pre class="codehilite"><code>┌─────────────────────────────────────────────────────────┐
+│                     Frontend (React + Vite)             │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐    │
+│  │ Landing  │  │   Auth   │  │     Dashboard      │    │
+│  │  Page    │→ │   Page   │→ │  (Timeline, Code,  │    │
+│  │          │  │          │  │  Variables, Sessions)│   │
+│  └──────────┘  └──────────┘  └────────────────────┘    │
+└────────────────────────┬────────────────────────────────┘
+                         │ HTTP (REST API)
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                  Backend (FastAPI + Python)              │
+│                                                         │
+│  ┌──────────┐    ┌──────────────────────────────────┐   │
+│  │  Routes  │───→│           Engine                  │  │
+│  │ /execute │    │  ┌────────┐  ┌────────────────┐  │  │
+│  │ /state   │    │  │Executor│→ │ Worker Process │  │  │
+│  │ /line    │    │  └────────┘  │  ┌──────────┐  │  │  │
+│  │ ...      │    │              │  │  Tracer   │  │  │  │
+│  └──────────┘    │              │  │  Sandbox  │  │  │  │
+│                  │              │  │ Serializer│  │  │  │
+│  ┌──────────┐    │              │  └──────────┘  │  │  │
+│  │  Models  │    │              └────────────────┘  │  │
+│  │(Pydantic)│    │  ┌────────────────┐             │  │
+│  └──────────┘    │  │ Reconstruction │             │  │
+│                  │  └────────────────┘             │  │
+│  ┌──────────┐    └──────────────────────────────────┘  │
+│  │  Utils   │                                          │
+│  │(Storage) │     sessions/  ← JSON session files      │
+│  └──────────┘                                          │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+
+<hr />
+<h2 id="tech-stack">Tech Stack</h2>
+<h3 id="backend">Backend</h3>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python 3.8+</strong></td>
+<td>Core language</td>
+</tr>
+<tr>
+<td><strong>FastAPI</strong></td>
+<td>REST API framework</td>
+</tr>
+<tr>
+<td><strong>Pydantic</strong></td>
+<td>Request/response validation</td>
+</tr>
+<tr>
+<td><strong>multiprocessing</strong></td>
+<td>Isolated code execution in child processes</td>
+</tr>
+<tr>
+<td><strong>sys.settrace</strong></td>
+<td>Python's built-in trace hook for line-level debugging</td>
+</tr>
+</tbody>
+</table>
+<h3 id="frontend">Frontend</h3>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>React 18</strong></td>
+<td>UI framework</td>
+</tr>
+<tr>
+<td><strong>Vite 5</strong></td>
+<td>Dev server &amp; bundler</td>
+</tr>
+<tr>
+<td><strong>Framer Motion</strong></td>
+<td>Animations &amp; transitions</td>
+</tr>
+<tr>
+<td><strong>Lucide React</strong></td>
+<td>Icon library</td>
+</tr>
+<tr>
+<td><strong>TailwindCSS (CDN)</strong></td>
+<td>Utility-first CSS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="project-structure">Project Structure</h2>
+<pre class="codehilite"><code>TIMELOOP1/
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                 # FastAPI app entry point
+│   │   ├── engine/
+│   │   │   ├── __init__.py
+│   │   │   ├── executor.py         # Orchestrates execution in a subprocess
+│   │   │   ├── worker.py           # Subprocess entry — runs user code + tracer
+│   │   │   ├── tracer.py           # Core tracing engine (sys.settrace callback)
+│   │   │   ├── sandbox.py          # Sandbox globals &amp; safe import restrictions
+│   │   │   ├── serializer.py       # Safe serialization of arbitrary Python values
+│   │   │   ├── reconstruction.py   # Reconstruct full state from checkpoint + deltas
+│   │   │   └── limits.py           # Execution limits (timeout, depth, steps)
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── execution.py        # Pydantic models for request/response
+│   │   ├── routes/
+│   │   │   ├── __init__.py
+│   │   │   └── execute.py          # All API route handlers
+│   │   └── utils/
+│   │       └── storage.py          # Session save/load (JSON files)
+│   ├── sessions/                   # Runtime directory for session JSON files
+│   └── venv/                       # Python virtual environment
+│
+├── frontend/
+│   ├── index.html                  # HTML entry point
+│   ├── package.json                # Node dependencies &amp; scripts
+│   ├── vite.config.js              # Vite configuration
+│   └── src/
+│       ├── main.jsx                # React DOM mount
+│       ├── App.jsx                 # Root component &amp; page router
+│       └── components/
+│           ├── LandingPage.jsx     # Marketing / hero landing page
+│           ├── AuthPage.jsx        # Login &amp; signup form
+│           └── Dashboard.jsx       # Main debugger interface
+│
+└── .gitignore
+</code></pre>
+
+<hr />
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li><strong>Python 3.8+</strong> with <code>pip</code></li>
+<li><strong>Node.js 18+</strong> with <code>npm</code></li>
+<li><strong>Git</strong></li>
+</ul>
+<h3 id="backend-setup">Backend Setup</h3>
+<pre class="codehilite"><code class="language-bash"># Navigate to the backend directory
+cd backend
+
+# Create and activate a virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
+
+# Install dependencies
+pip install fastapi uvicorn pydantic
+
+# Start the API server
+uvicorn app.main:app --reload --port 8000
+</code></pre>
+
+<p>The backend will be available at <code>http://localhost:8000</code>. Visit <code>http://localhost:8000/docs</code> for the interactive Swagger UI.</p>
+<h3 id="frontend-setup">Frontend Setup</h3>
+<pre class="codehilite"><code class="language-bash"># Navigate to the frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the dev server
+npm run dev
+</code></pre>
+
+<p>The frontend will be available at <code>http://localhost:3000</code>.</p>
+<hr />
+<h2 id="api-reference">API Reference</h2>
+<h3 id="post-execute"><code>POST /execute</code></h3>
+<p>Execute Python code and return the full trace.</p>
+<p><strong>Request Body:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;code&quot;: &quot;x = 10\ny = x * 2\nprint(y)&quot;,
+  &quot;mode&quot;: &quot;fast&quot;          // &quot;fast&quot; (default) or &quot;detailed&quot;
+}
+</code></pre>
+
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;session_id&quot;: &quot;uuid-string&quot;,
+  &quot;snapshots&quot;: [
+    {
+      &quot;step&quot;: 1,
+      &quot;event&quot;: &quot;line&quot;,
+      &quot;line_no&quot;: 1,
+      &quot;function&quot;: &quot;global&quot;,
+      &quot;stack&quot;: [&quot;global&quot;],
+      &quot;locals&quot;: { &quot;x&quot;: 10 },
+      &quot;delta&quot;: null,
+      &quot;is_full&quot;: true
+    }
+  ],
+  &quot;variable_history&quot;: {
+    &quot;x&quot;: [[1, 10]],
+    &quot;y&quot;: [[2, 20]]
+  },
+  &quot;line_index&quot;: {
+    &quot;1&quot;: [1],
+    &quot;2&quot;: [2]
+  },
+  &quot;truncated&quot;: false,
+  &quot;error&quot;: null
+}
+</code></pre>
+
+<hr />
+<h3 id="get-state"><code>GET /state</code></h3>
+<p>Reconstruct the full variable state at a specific step.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td><code>string</code></td>
+<td>Session UUID from <code>/execute</code></td>
+</tr>
+<tr>
+<td><code>step</code></td>
+<td><code>int</code></td>
+<td>Target step number</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;step&quot;: 5,
+  &quot;state&quot;: {
+    &quot;x&quot;: 10,
+    &quot;y&quot;: 20
+  }
+}
+</code></pre>
+
+<hr />
+<h3 id="get-variable-history"><code>GET /variable-history</code></h3>
+<p>Get the change history of a single variable across the entire execution.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td><code>string</code></td>
+<td>Session UUID</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Variable name</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;variable&quot;: &quot;x&quot;,
+  &quot;history&quot;: [
+    { &quot;step&quot;: 1, &quot;value&quot;: 0 },
+    { &quot;step&quot;: 5, &quot;value&quot;: 10 },
+    { &quot;step&quot;: 12, &quot;value&quot;: 42 }
+  ]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-function-calls"><code>GET /function-calls</code></h3>
+<p>List all execution steps where a given function was called. <strong>Requires detailed mode.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td><code>string</code></td>
+<td>Session UUID</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Function name</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;function&quot;: &quot;my_func&quot;,
+  &quot;calls&quot;: [3, 7, 15]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-line"><code>GET /line</code></h3>
+<p>List all execution steps that visited a specific source line. <strong>Not available in fast mode.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td><code>string</code></td>
+<td>Session UUID</td>
+</tr>
+<tr>
+<td><code>line_no</code></td>
+<td><code>int</code></td>
+<td>Source line number</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;line&quot;: 5,
+  &quot;steps&quot;: [3, 12, 25]
+}
+</code></pre>
+
+<hr />
+<h3 id="get-exceptions"><code>GET /exceptions</code></h3>
+<p>List all exceptions that occurred during execution.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td><code>string</code></td>
+<td>Session UUID</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response:</strong></p>
+<pre class="codehilite"><code class="language-json">{
+  &quot;exceptions&quot;: [
+    {
+      &quot;step&quot;: 8,
+      &quot;line_no&quot;: 15,
+      &quot;error&quot;: &quot;ZeroDivisionError: division by zero&quot;
+    }
+  ]
+}
+</code></pre>
+
+<hr />
+<h2 id="backend-modules">Backend Modules</h2>
+<h3 id="engine">Engine</h3>
+<p>The engine is the core of TimeLoop — it handles code execution, tracing, and state reconstruction.</p>
+<h4 id="tracer">Tracer</h4>
+<p><strong>File:</strong> <code>backend/app/engine/tracer.py</code></p>
+<p>The <code>Tracer</code> class implements a <code>sys.settrace</code> callback that records execution snapshots. Key behaviors:</p>
+<ul>
+<li><strong>Dual-mode tracing:</strong></li>
+<li><code>fast</code> mode — Traces only the global scope and caps at 2,000 steps. Skips function internals.</li>
+<li><code>detailed</code> mode — Traces all <code>line</code>, <code>call</code>, <code>return</code>, and <code>exception</code> events at every scope.</li>
+<li><strong>Delta compression</strong> — Only the first snapshot (and every Nth snapshot at <code>checkpoint_interval=50</code>) stores the full <code>locals</code> dict. All intermediate snapshots store only the changed variables (<code>delta</code>).</li>
+<li><strong>Duplicate filtering</strong> — Consecutive snapshots with the same line number, function, and delta are deduplicated.</li>
+<li><strong>Variable history</strong> — Tracks every value change of global-scope variables as <code>(step, value)</code> tuples.</li>
+<li><strong>Line index</strong> — Maps each <code>line_no</code> → list of steps that executed that line.</li>
+<li><strong>Safety limits</strong> — Enforces <code>max_steps</code> (default 20,000) and <code>max_depth</code> (default 1,000).</li>
+</ul>
+<h4 id="executor">Executor</h4>
+<p><strong>File:</strong> <code>backend/app/engine/executor.py</code></p>
+<p>The <code>ExecutionEngine</code> class orchestrates code execution:</p>
+<ol>
+<li>Creates a <code>multiprocessing.Pipe</code> for communication.</li>
+<li>Spawns a child <code>Process</code> running <code>worker_main</code>.</li>
+<li>Waits up to <code>EXECUTION_TIMEOUT</code> seconds.</li>
+<li>If the process doesn't finish in time, it terminates the child and returns a timeout error.</li>
+<li>Otherwise, reads the trace results from the pipe.</li>
+</ol>
+<h4 id="worker">Worker</h4>
+<p><strong>File:</strong> <code>backend/app/engine/worker.py</code></p>
+<p>The <code>worker_main</code> function runs inside the child process:</p>
+<ul>
+<li><strong>Detailed mode:</strong> Installs <code>sys.settrace(tracer.trace)</code>, then <code>exec()</code>s the user code in the sandbox globals. The tracer captures every execution event.</li>
+<li><strong>Fast mode:</strong> Runs <code>exec()</code> <strong>without</strong> tracing. After completion, it creates a single snapshot from the final <code>sandbox_globals</code>, builds a basic variable history, and returns it.</li>
+<li>Always sends results back through the <code>Pipe</code> connection and closes it, even on error.</li>
+</ul>
+<h4 id="sandbox">Sandbox</h4>
+<p><strong>File:</strong> <code>backend/app/engine/sandbox.py</code></p>
+<p>Provides a restricted execution environment:</p>
+<ul>
+<li><strong>Whitelisted builtins:</strong> <code>print</code>, <code>range</code>, <code>len</code>, <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>list</code>, <code>dict</code>, <code>set</code>, <code>tuple</code>, <code>abs</code>, <code>min</code>, <code>max</code>, <code>sum</code>.</li>
+<li><strong>Safe import:</strong> Only <code>math</code> and <code>random</code> modules are allowed. All other imports raise <code>ImportError</code>.</li>
+<li><code>get_sandbox_globals()</code> returns a globals dict with <code>__builtins__</code> replaced by the whitelist.</li>
+</ul>
+<h4 id="serializer">Serializer</h4>
+<p><strong>File:</strong> <code>backend/app/engine/serializer.py</code></p>
+<p><code>safe_serialize(value)</code> converts arbitrary Python objects into JSON-safe representations:</p>
+<ul>
+<li>Primitives (<code>int</code>, <code>float</code>, <code>bool</code>, <code>None</code>) pass through unchanged.</li>
+<li>Strings are truncated at 200 characters.</li>
+<li>Lists/tuples are capped at 50 items, recursively serialized to <code>max_depth=3</code>.</li>
+<li>Dicts are capped at 50 entries.</li>
+<li>Functions are serialized as <code>"&lt;function name&gt;"</code>.</li>
+<li>Everything else falls back to <code>str(value)</code>.</li>
+</ul>
+<h4 id="reconstruction">Reconstruction</h4>
+<p><strong>File:</strong> <code>backend/app/engine/reconstruction.py</code></p>
+<p><code>reconstruct_state(snapshots, target_step)</code> rebuilds the full variable state at any step:</p>
+<ol>
+<li>Binary searches (<code>bisect</code>) for the closest snapshot ≤ <code>target_step</code>.</li>
+<li>Walks backward to the nearest full checkpoint (<code>is_full=True</code>).</li>
+<li>Starts from the checkpoint's <code>locals</code> dict.</li>
+<li>Applies all subsequent <code>delta</code> dicts forward up to <code>target_step</code>.</li>
+<li>Handles <code>"__deleted__"</code> markers by removing variables from the state.</li>
+</ol>
+<h4 id="limits">Limits</h4>
+<p><strong>File:</strong> <code>backend/app/engine/limits.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MAX_STEPS</code></td>
+<td>20,000</td>
+<td>Maximum number of traced steps</td>
+</tr>
+<tr>
+<td><code>MAX_DEPTH</code></td>
+<td>1,000</td>
+<td>Maximum call stack depth</td>
+</tr>
+<tr>
+<td><code>MAX_CONTAINER_ITEMS</code></td>
+<td>50</td>
+<td>Maximum items serialized from a list/dict</td>
+</tr>
+<tr>
+<td><code>MAX_SERIALIZATION_DEPTH</code></td>
+<td>4</td>
+<td>Maximum nesting depth for serialization</td>
+</tr>
+<tr>
+<td><code>EXECUTION_TIMEOUT</code></td>
+<td>8 seconds</td>
+<td>Maximum wall-clock time for code execution</td>
+</tr>
+</tbody>
+</table>
+<h3 id="models">Models</h3>
+<p><strong>File:</strong> <code>backend/app/models/execution.py</code></p>
+<p>Pydantic models for request/response validation:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Fields</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExecutionRequest</code></td>
+<td><code>code: str</code>, <code>mode: Optional[str] = "fast"</code></td>
+<td>Incoming execution request</td>
+</tr>
+<tr>
+<td><code>Snapshot</code></td>
+<td><code>step</code>, <code>event</code>, <code>line_no</code>, <code>function</code>, <code>stack</code>, <code>locals</code>, <code>delta</code>, <code>is_full</code></td>
+<td>A single execution snapshot</td>
+</tr>
+<tr>
+<td><code>ExecutionResponse</code></td>
+<td><code>session_id</code>, <code>snapshots</code>, <code>variable_history</code>, <code>line_index</code>, <code>truncated</code>, <code>error</code></td>
+<td>Full execution result</td>
+</tr>
+</tbody>
+</table>
+<h3 id="routes">Routes</h3>
+<p><strong>File:</strong> <code>backend/app/routes/execute.py</code></p>
+<p>All API endpoints are defined here using FastAPI's <code>APIRouter</code>. See the <a href="#api-reference">API Reference</a> section for full details.</p>
+<h3 id="utils">Utils</h3>
+<p><strong>File:</strong> <code>backend/app/utils/storage.py</code></p>
+<p>Simple file-based session persistence:</p>
+<ul>
+<li><code>save_session(session_id, data)</code> — Writes session data as JSON to <code>sessions/{session_id}.json</code>.</li>
+<li><code>load_session(session_id)</code> — Reads and returns session data from disk, or <code>None</code> if not found.</li>
+</ul>
+<hr />
+<h2 id="frontend-components">Frontend Components</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>App</strong></td>
+<td><code>src/App.jsx</code></td>
+<td>Root component. Manages page state (<code>landing</code> → <code>auth</code> → <code>dashboard</code>). Renders animated background effects.</td>
+</tr>
+<tr>
+<td><strong>LandingPage</strong></td>
+<td><code>src/components/LandingPage.jsx</code></td>
+<td>Hero page with project branding, tagline, and "Get Early Access" CTA. Uses Framer Motion for staggered fade-in animations.</td>
+</tr>
+<tr>
+<td><strong>AuthPage</strong></td>
+<td><code>src/components/AuthPage.jsx</code></td>
+<td>Sign-up / sign-in form with glassmorphism card design. Supports toggling between modes.</td>
+</tr>
+<tr>
+<td><strong>Dashboard</strong></td>
+<td><code>src/components/Dashboard.jsx</code></td>
+<td>The main debugger interface. Features a sidebar navigation, execution timeline with playback controls, code viewer with line highlighting, variable inspector, and session history panel.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dashboard-sub-components">Dashboard Sub-Components</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NavItem</code></td>
+<td>Sidebar navigation button with icon + label</td>
+</tr>
+<tr>
+<td><code>CodeViewer</code></td>
+<td>Displays source code with line numbers and error highlighting</td>
+</tr>
+<tr>
+<td><code>VariableItem</code></td>
+<td>Individual variable display with name, type, and value</td>
+</tr>
+<tr>
+<td><code>StatCard</code></td>
+<td>Small statistics card (e.g., "Total: 128")</td>
+</tr>
+<tr>
+<td><code>StatusBadge</code></td>
+<td>Colored badge showing session status (completed / failed / running)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="execution-modes">Execution Modes</h2>
+<h3 id="fast-mode-default">Fast Mode (Default)</h3>
+<ul>
+<li><strong>No <code>sys.settrace</code> hook</strong> — code runs at full speed.</li>
+<li>After execution, a single snapshot is created from the final global state.</li>
+<li>Variable history has only one entry (the final value).</li>
+<li><strong>Line tracking and function call tracking are NOT available.</strong></li>
+<li>Step limit: <strong>2,000</strong> (if tracing is attempted).</li>
+<li>Best for: Quick runs where you only need the final result.</li>
+</ul>
+<h3 id="detailed-mode">Detailed Mode</h3>
+<ul>
+<li><code>sys.settrace</code> is installed before execution.</li>
+<li>Every <code>line</code>, <code>call</code>, <code>return</code>, and <code>exception</code> event is captured.</li>
+<li>Full delta-based snapshot stream with checkpoints every 50 steps.</li>
+<li>Variable history tracks every change.</li>
+<li>Line index and function call tracking are fully available.</li>
+<li>Step limit: <strong>20,000</strong>.</li>
+<li>Best for: Deep debugging where you need to step through execution.</li>
+</ul>
+<hr />
+<h2 id="security-sandboxing">Security &amp; Sandboxing</h2>
+<p>TimeLoop executes arbitrary user-submitted Python code. The following safeguards are in place:</p>
+<ol>
+<li><strong>Restricted builtins</strong> — Only a handful of safe builtins (<code>print</code>, <code>range</code>, <code>len</code>, type constructors, aggregation functions) are available. Dangerous functions like <code>open</code>, <code>eval</code>, <code>exec</code>, <code>__import__</code> (direct) are removed.</li>
+<li><strong>Controlled imports</strong> — Custom <code>safe_import</code> only allows <code>math</code> and <code>random</code>. All other modules are blocked.</li>
+<li><strong>Process isolation</strong> — User code runs in a <code>multiprocessing.Process</code>, isolating it from the main API server.</li>
+<li><strong>Execution timeout</strong> — A hard timeout of 8 seconds kills runaway processes.</li>
+<li><strong>Step limits</strong> — The tracer aborts after 20,000 steps (detailed) or 2,000 steps (fast).</li>
+<li><strong>Depth limits</strong> — Call stack depth is limited to 1,000 frames.</li>
+<li><strong>Serialization limits</strong> — Containers are capped at 50 items, strings at 200 chars, nesting at 3 levels.</li>
+</ol>
+<blockquote>
+<p><strong>⚠️ Note:</strong> This sandbox is NOT production-hardened. It is designed for educational/demo purposes. For production use, consider running user code in a containerized environment (e.g., Docker with restricted capabilities, seccomp profiles, and network isolation).</p>
+</blockquote>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<p>Key configuration values are centralized in <code>backend/app/engine/limits.py</code>:</p>
+<pre class="codehilite"><code class="language-python">MAX_STEPS = 20000               # Max traced steps before abort
+MAX_DEPTH = 1000                # Max call stack depth
+MAX_CONTAINER_ITEMS = 50        # Max items serialized per list/dict
+MAX_SERIALIZATION_DEPTH = 4     # Max nesting depth
+EXECUTION_TIMEOUT = 8           # Seconds before process is killed
+</code></pre>
+
+<p>The Tracer also has an internal <code>checkpoint_interval = 50</code>, controlling how often full state checkpoints are stored vs. deltas.</p>
+<p>CORS is configured in <code>backend/app/main.py</code> to allow all origins (<code>*</code>) for development convenience. <strong>Restrict this in production.</strong></p>
+<hr />
+<h2 id="contributing">Contributing</h2>
+<ol>
+<li>Fork the repository.</li>
+<li>Create a feature branch: <code>git checkout -b feature/my-feature</code>.</li>
+<li>Commit your changes: <code>git commit -m "Add my feature"</code>.</li>
+<li>Push to the branch: <code>git push origin feature/my-feature</code>.</li>
+<li>Open a Pull Request.</li>
+</ol>
+<hr />
+<h2 id="license">License</h2>
+<p>This project is currently unlicensed. Contact the maintainers for usage terms.</p>
+<hr />
+<p align="center">
+  Built with ❤️ by the <strong>TimeLoop Labs</strong> team
+</p>
+</body>
+</html>
