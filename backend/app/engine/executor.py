@@ -2,12 +2,14 @@ import uuid
 from multiprocessing import Process, Pipe
 
 from .worker import worker_main
-from .limits import EXECUTION_TIMEOUT
+from .limits import get_timeout
+from .modes.mode_router import normalise_mode
 
 
 class ExecutionEngine:
 
-    def run(self, code: str, mode: str = "fast"):
+    def run(self, code: str, mode: str = "smart"):
+        mode = normalise_mode(mode)
 
         parent_conn, child_conn = Pipe()
 
@@ -18,7 +20,8 @@ class ExecutionEngine:
 
         process.start()
 
-        process.join(EXECUTION_TIMEOUT)
+        timeout = get_timeout(mode)
+        process.join(timeout)
 
         if process.is_alive():
             process.terminate()
@@ -47,6 +50,7 @@ class ExecutionEngine:
             "snapshots": result.get("snapshots", []),
             "variable_history": result.get("variable_history", {}),
             "line_index": result.get("line_index", {}),
+            "function_calls": result.get("function_calls", []),
             "truncated": result.get("truncated", True),
             "error": result.get("error")
-        }
+}

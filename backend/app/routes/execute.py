@@ -171,10 +171,12 @@ def get_exceptions(session_id: str):
 
     for snap in snapshots:
         if snap.get("event") == "exception":
+            value = snap.get("value") or {}
             errors.append({
                 "step": snap.get("step"),
                 "line_no": snap.get("line_no"),
-                "error": snap.get("delta", {}).get("error")
+                "error": value.get("message"),
+                "exception_type": value.get("exception_type"),
             })
 
     if not errors:
