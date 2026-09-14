@@ -323,6 +323,9 @@ export default function VariablesPanel({ currentState, prevState, error, stdout,
     ([key, value]) => !isDebuggerMeta(key) && !isImplementationArtifact(key) && !isClassDef(value)
   );
 
+  // Call stack for the active frame (last entry = currently executing).
+  const stack = Array.isArray(currentSnapshot?.stack) ? currentSnapshot.stack : [];
+
   return (
     <div className="flex flex-col h-full bg-theme-panel">
       <div className="h-10 border-b border-theme-border flex items-center px-4 shrink-0 bg-theme-header">
@@ -333,6 +336,30 @@ export default function VariablesPanel({ currentState, prevState, error, stdout,
           </span>
         )}
       </div>
+
+      {/* Call-stack breadcrumb — the deepest frame is the active one. */}
+      {stack.length > 0 && (
+        <div className="shrink-0 border-b border-theme-border/60 bg-theme-panel-inner px-4 py-2 flex items-center gap-1.5 overflow-x-auto">
+          <span className="text-[9px] font-mono text-theme-muted uppercase tracking-widest shrink-0 mr-1">Stack</span>
+          {stack.map((frame, i) => {
+            const isActive = i === stack.length - 1;
+            return (
+              <React.Fragment key={`${frame}-${i}`}>
+                {i > 0 && <span className="text-theme-muted/50 text-[10px] shrink-0">›</span>}
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded shrink-0 transition-colors ${
+                    isActive
+                      ? 'text-theme-accent font-bold bg-theme-accent-dim border border-theme-accent/40 drop-shadow-[0_0_6px_var(--color-accent-glow)]'
+                      : 'text-theme-muted border border-transparent'
+                  }`}
+                >
+                  {frame}{frame === 'global' ? '' : '()'}
+                </span>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
       <div className="flex-1 overflow-auto p-4 space-y-3">
         {/* Show real runtime error if present */}
         {error && (
