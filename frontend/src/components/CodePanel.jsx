@@ -26,7 +26,7 @@ export default function CodePanel({ code, currentLine, onChange }) {
     return (
       <div className="flex flex-col h-full bg-theme-panel">
         <div className="h-10 border-b border-theme-border flex items-center px-4 shrink-0 bg-theme-header justify-between">
-          <span className="text-xs font-mono text-theme-accent font-bold uppercase tracking-widest drop-shadow-[0_0_8px_var(--color-accent-glow)]">Source Code</span>
+          <span className="text-lg font-accent text-theme-accent tracking-wide drop-shadow-[0_0_8px_var(--color-accent-glow)]">Source Code</span>
           <button 
             onClick={() => setIsEditing(false)}
             className="text-[10px] font-mono text-theme-muted hover:text-theme-accent border border-theme-border hover:border-theme-accent px-3 py-1 rounded transition-all uppercase tracking-wider"
@@ -63,7 +63,7 @@ export default function CodePanel({ code, currentLine, onChange }) {
   return (
     <div className="flex flex-col h-full bg-theme-panel">
       <div className="h-10 border-b border-theme-border flex items-center px-4 shrink-0 bg-theme-header justify-between">
-        <span className="text-xs font-mono text-theme-accent font-bold uppercase tracking-widest drop-shadow-[0_0_8px_var(--color-accent-glow)]">Source Code</span>
+        <span className="text-lg font-accent text-theme-accent tracking-wide drop-shadow-[0_0_8px_var(--color-accent-glow)]">Source Code</span>
         <button 
           onClick={() => setIsEditing(true)}
           className="text-[10px] font-mono text-theme-muted hover:text-theme-accent border border-theme-border hover:border-theme-accent px-3 py-1 rounded transition-all uppercase tracking-wider"

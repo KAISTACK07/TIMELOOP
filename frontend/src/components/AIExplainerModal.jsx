@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, X, Check, Copy, Zap, ArrowRight, Code, Activity, ShieldCheck, Loader2 } from 'lucide-react';
+import { X, Check, Copy, Zap, ArrowRight, Code, Activity, ShieldCheck, Loader2 } from 'lucide-react';
 import * as api from '../lib/api.js';
 
 export default function AIExplainerModal({ 
@@ -69,35 +69,27 @@ export default function AIExplainerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-theme-panel border border-theme-border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-colors">
-        
-        {/* Header */}
-        <div className="h-14 border-b border-theme-border px-6 flex items-center justify-between bg-theme-header shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-theme-accent-dim flex items-center justify-center text-theme-accent shadow-[0_0_12px_var(--color-accent-glow)]">
-              <Sparkles size={18} />
-            </div>
-            <div>
-              <h2 className="text-sm font-mono font-bold text-theme-text flex items-center gap-2">
-                AI Code Explainer & Optimizer
-              </h2>
-              <span className="text-[10px] font-mono text-theme-muted flex items-center gap-1.5">
-                <ShieldCheck size={11} className="text-emerald-400" />
-                {analysis
-                  ? isLLM
-                    ? `Claude${analysis.model ? ` · ${analysis.model}` : ''} · secure backend`
-                    : 'Deterministic AST static analysis'
-                  : 'Secure server-side analysis'}
-              </span>
-            </div>
+      <div className="bg-theme-panel border border-theme-border w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-colors">
+
+        {/* Header — matches the Source Code / Variables panel header style */}
+        <div className="h-10 border-b border-theme-border flex items-center px-4 shrink-0 bg-theme-header justify-between gap-3">
+          <span className="text-lg font-accent text-theme-accent tracking-wide drop-shadow-[0_0_8px_var(--color-accent-glow)] whitespace-nowrap">AI Explainer</span>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="hidden sm:flex text-[10px] font-mono text-theme-muted items-center gap-1.5 truncate">
+              <ShieldCheck size={11} className="text-emerald-400 shrink-0" />
+              {analysis
+                ? isLLM
+                  ? `Claude${analysis.model ? ` · ${analysis.model}` : ''} · secure backend`
+                  : 'Deterministic AST static analysis'
+                : 'Secure server-side analysis'}
+            </span>
+            <button
+              onClick={onClose}
+              className="text-[10px] font-mono text-theme-muted hover:text-theme-accent border border-theme-border hover:border-theme-accent px-3 py-1 rounded transition-all uppercase tracking-wider flex items-center gap-1.5"
+            >
+              <X size={12} /> Close
+            </button>
           </div>
-          
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-theme-muted hover:text-theme-text hover:bg-theme-hover transition-colors"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         {/* Content Body */}
@@ -228,17 +220,6 @@ export default function AIExplainerModal({
               No analysis available. Run the code to generate execution traces.
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="h-12 border-t border-theme-border px-6 flex items-center justify-between bg-theme-header shrink-0 text-[11px] font-mono text-theme-muted">
-          <span>Mode: <strong className="text-theme-text uppercase">{mode}</strong></span>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 rounded-lg border border-theme-border hover:bg-theme-hover text-theme-text transition-colors"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

@@ -329,7 +329,7 @@ export default function VariablesPanel({ currentState, prevState, error, stdout,
   return (
     <div className="flex flex-col h-full bg-theme-panel">
       <div className="h-10 border-b border-theme-border flex items-center px-4 shrink-0 bg-theme-header">
-        <span className="text-xs font-mono text-theme-accent font-bold uppercase tracking-widest drop-shadow-[0_0_8px_var(--color-accent-glow)]">Variables / Context</span>
+        <span className="text-lg font-accent text-theme-accent tracking-wide drop-shadow-[0_0_8px_var(--color-accent-glow)]">Variables / Context</span>
         {entries.length !== Object.keys(currentState).length && (
           <span className="ml-auto text-[10px] text-theme-muted font-mono">
             {Object.keys(currentState).length - entries.length} hidden

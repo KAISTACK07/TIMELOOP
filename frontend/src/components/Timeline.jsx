@@ -54,8 +54,20 @@ const WebTrackSVG = React.memo(({ active }) => (
           <feMergeNode in="SourceGraphic" />
         </feMerge>
       </filter>
+
+      {/* Traveling monochrome sheen — reads as fluid flowing along the
+          filled portion of the timeline as you scrub forward. Active only. */}
+      {active && (
+        <linearGradient id="fluidFlow" x1="0" y1="0" x2="0.35" y2="0">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0" />
+          <stop offset="50%" stopColor="var(--color-accent)" stopOpacity="1" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+          <animate attributeName="x1" values="-0.35;1" dur="1.6s" repeatCount="indefinite" />
+          <animate attributeName="x2" values="0;1.35" dur="1.6s" repeatCount="indefinite" />
+        </linearGradient>
+      )}
     </defs>
-    
+
     <g filter={active ? "url(#webGlow)" : ""}>
       <motion.path 
         fill="none" 
@@ -111,11 +123,22 @@ const WebTrackSVG = React.memo(({ active }) => (
         animate={{ d: ["M 350,18 Q 360,8 380,21", "M 350,18 Q 365,5 380,21", "M 350,18 Q 360,8 380,21"] }}
         transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
       />
-      <motion.path 
+      <motion.path
         fill="none" stroke={active ? "var(--color-accent)" : "var(--color-border)"} strokeWidth={active ? 1.5 : 0.5}
         animate={{ d: ["M 650,22 Q 670,35 690,19", "M 650,22 Q 675,40 690,19", "M 650,22 Q 670,35 690,19"] }}
         transition={{ repeat: Infinity, duration: 2.8, ease: "easeInOut" }}
       />
+
+      {/* Fluid sheen sweeping along the filled track (active only) */}
+      {active && (
+        <path
+          d="M0,20 Q 250,18 500,20 T 1000,20"
+          fill="none"
+          stroke="url(#fluidFlow)"
+          strokeWidth={7}
+          strokeLinecap="round"
+        />
+      )}
     </g>
   </svg>
 ));
@@ -343,9 +366,9 @@ export default function Timeline({
   return (
     <div className="h-full flex flex-col select-none">
       <div className="flex justify-between items-center mb-4 shrink-0">
-        <h3 className="text-xs font-mono text-theme-muted uppercase tracking-widest flex items-center gap-2">
+        <h3 className="text-xs font-mono text-theme-muted flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-theme-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]"></div>
-          Execution Controller
+          <span className="text-lg font-accent text-theme-accent tracking-wide drop-shadow-[0_0_8px_var(--color-accent-glow)]">Execution Controller</span>
           {viz.strategy !== 'FULL' && (
             <span className="ml-2 text-[9px] px-2 py-0.5 rounded border border-theme-border text-theme-muted bg-theme-panel">
               {viz.strategy === 'OPTIMIZED' ? '⚡ Windowed' : '⚡ Adaptive'} — {visibleSteps.length} / {maxStep + 1} nodes

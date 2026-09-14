@@ -3,63 +3,39 @@
 @theme {
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --font-accent: "Eater", cursive;
+  --font-accent: "Metal Mania", "Eater", cursive;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   VENOM SYMBIOTE THEME
-   Deep symbiote black + toxic venom-green energy + web glow.
-   Every component draws from these tokens, so the whole app reskins
-   from here.
-   ══════════════════════════════════════════════════════════════ */
-
 :root[data-theme="dark"] {
-  --color-bg: #030504;
-  --color-header: rgba(7, 10, 8, 0.92);
-  --color-panel: rgba(15, 20, 16, 0.55);
-  --color-panel-inner: rgba(5, 8, 6, 0.85);
-  --color-timeline: rgba(5, 8, 6, 0.85);
-  --color-border: rgba(134, 255, 92, 0.13);   /* faint venom hairline */
-  --color-text: #e9f1e6;
-  --color-muted: #7f8d7b;
-  --color-accent: #86ff5c;                     /* toxic venom green */
-  --color-accent-dim: rgba(134, 255, 92, 0.12);
-  --color-accent-glow: rgba(134, 255, 92, 0.55);
-  --color-text-glow: rgba(134, 255, 92, 0.45);
-  --color-hover: rgba(134, 255, 92, 0.07);
+  --color-bg: #050505;
+  --color-header: rgba(10, 10, 10, 0.9);
+  --color-panel: rgba(20, 20, 20, 0.6);
+  --color-panel-inner: rgba(10, 10, 10, 0.8);
+  --color-timeline: rgba(10, 10, 10, 0.8);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text: #e5e5e5;
+  --color-muted: #888888;
+  --color-accent: #ffffff;
+  --color-accent-dim: rgba(255, 255, 255, 0.1);
+  --color-accent-glow: rgba(255, 255, 255, 0.5);
+  --color-text-glow: rgba(255, 255, 255, 0.5);
+  --color-hover: rgba(255, 255, 255, 0.05);
 }
 
 :root[data-theme="light"] {
-  --color-bg: #eef1ec;
-  --color-header: rgba(255, 255, 255, 0.92);
-  --color-panel: rgba(255, 255, 255, 0.82);
-  --color-panel-inner: rgba(237, 242, 235, 0.85);
+  --color-bg: #f5f5f5;
+  --color-header: rgba(255, 255, 255, 0.9);
+  --color-panel: rgba(255, 255, 255, 0.8);
+  --color-panel-inner: rgba(240, 240, 240, 0.8);
   --color-timeline: rgba(255, 255, 255, 0.9);
-  --color-border: rgba(20, 60, 15, 0.14);
-  --color-text: #14211a;
-  --color-muted: #566b54;
-  --color-accent: #1f8f2e;                      /* deep venom green */
-  --color-accent-dim: rgba(31, 143, 46, 0.10);
-  --color-accent-glow: rgba(31, 143, 46, 0.38);
-  --color-text-glow: rgba(31, 143, 46, 0.25);
-  --color-hover: rgba(31, 143, 46, 0.06);
-}
-
-/* Fallback before JS sets data-theme (defaults to the symbiote look). */
-:root:not([data-theme]) {
-  --color-bg: #030504;
-  --color-header: rgba(7, 10, 8, 0.92);
-  --color-panel: rgba(15, 20, 16, 0.55);
-  --color-panel-inner: rgba(5, 8, 6, 0.85);
-  --color-timeline: rgba(5, 8, 6, 0.85);
-  --color-border: rgba(134, 255, 92, 0.13);
-  --color-text: #e9f1e6;
-  --color-muted: #7f8d7b;
-  --color-accent: #86ff5c;
-  --color-accent-dim: rgba(134, 255, 92, 0.12);
-  --color-accent-glow: rgba(134, 255, 92, 0.55);
-  --color-text-glow: rgba(134, 255, 92, 0.45);
-  --color-hover: rgba(134, 255, 92, 0.07);
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-text: #1a1a1a;
+  --color-muted: #666666;
+  --color-accent: #000000;
+  --color-accent-dim: rgba(0, 0, 0, 0.05);
+  --color-accent-glow: rgba(0, 0, 0, 0.3);
+  --color-text-glow: rgba(0, 0, 0, 0.2);
+  --color-hover: rgba(0, 0, 0, 0.05);
 }
 
 body {
@@ -69,22 +45,9 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-::selection {
-  background: var(--color-accent-glow);
-  color: var(--color-bg);
-}
-
 /* Custom Tailwind utility classes mapped to CSS variables */
 @layer utilities {
-  /* The app ground carries a subtle venom-energy bleed from two corners
-     so translucent panels float over a living symbiote surface. */
-  .bg-theme-bg {
-    background-color: var(--color-bg);
-    background-image:
-      radial-gradient(55% 45% at 12% -8%, var(--color-accent-dim), transparent 60%),
-      radial-gradient(45% 40% at 100% 108%, var(--color-accent-dim), transparent 55%);
-    background-attachment: fixed;
-  }
+  .bg-theme-bg { background-color: var(--color-bg); }
   .bg-theme-header { background-color: var(--color-header); }
   .bg-theme-panel { background-color: var(--color-panel); }
   .bg-theme-panel-inner { background-color: var(--color-panel-inner); }
@@ -92,10 +55,10 @@ body {
   .bg-theme-accent { background-color: var(--color-accent); }
   .bg-theme-accent-dim { background-color: var(--color-accent-dim); }
   .bg-theme-hover { background-color: var(--color-hover); }
-
+  
   .border-theme-border { border-color: var(--color-border); }
   .border-theme-accent { border-color: var(--color-accent); }
-
+  
   .bg-theme-text { background-color: var(--color-text); }
   .bg-theme-muted { background-color: var(--color-muted); }
 
@@ -116,5 +79,5 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
+  background: var(--color-muted);
 }
