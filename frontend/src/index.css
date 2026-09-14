@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Self-hosted so the Venom accent font renders reliably everywhere,
+   independent of the Google Fonts CDN (which some environments block). */
+@font-face {
+  font-family: 'Metal Mania';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/metal-mania.woff2') format('woff2');
+}
+
 @theme {
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
