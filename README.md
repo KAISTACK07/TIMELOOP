@@ -367,6 +367,55 @@ List all exceptions that occurred during execution.
 
 ---
 
+### `POST /explain`  _(Phase 7 — AI Explainer)_
+
+Analyze the program at the user's current point in the replay timeline and
+return a structured complexity analysis + optimization. Secrets stay
+server-side — **no API key is ever sent to or stored in the frontend.**
+
+**Request Body:**
+
+```json
+{
+  "code": "for i in range(n):\n    for j in range(n):\n        pass",
+  "current_line": 2,
+  "snapshot": { "step": 5, "function": "global", "stack": ["global"] },
+  "variables": { "n": 10 },
+  "stack": ["global"],
+  "mode": "smart"
+}
+```
+
+**Response:**
+
+```json
+{
+  "timeComplexity": "O(n²)",
+  "spaceComplexity": "O(1)",
+  "expectedComplexity": "O(n) time, O(n) space",
+  "issue": "2-level nested iteration detected...",
+  "optimization": "Replace inner scans with a hash set / dict lookup...",
+  "optimizedCode": "...",
+  "activeLineInfo": "Line 2: for j in range(n):",
+  "contextSummary": "Step 5 in global with 1 active variable(s).",
+  "source": "llm",
+  "model": "claude-opus-5",
+  "error": null
+}
+```
+
+**How it degrades:** the endpoint always returns a complete analysis.
+- With `ANTHROPIC_API_KEY` set → `source: "llm"` (Claude), with the
+  deterministic analysis back-filling any field the model omits.
+- Without a key (or if the LLM call fails) → `source: "static-analysis"`,
+  produced by a deterministic **AST** analyzer (real loop-nesting depth,
+  recursion, backtracking detection) — no network required.
+
+Enable the LLM path by copying `backend/.env.example` to `backend/.env` and
+setting `ANTHROPIC_API_KEY`. Check the active mode at `GET /health`.
+
+---
+
 ## Backend Modules
 
 ### Engine

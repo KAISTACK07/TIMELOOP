@@ -14,6 +14,7 @@ export default function AIExplainerModal({
 }) {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('explanation'); // 'explanation' | 'code'
 
@@ -21,7 +22,9 @@ export default function AIExplainerModal({
     if (isOpen) {
       setLoading(true);
       setCopied(false);
-      
+      setError(null);
+      setAnalysis(null);
+
       const context = {
         code,
         currentLine,
@@ -37,12 +40,15 @@ export default function AIExplainerModal({
         })
         .catch((err) => {
           console.error("AI analysis error:", err);
+          setError("Could not reach the analysis backend. Is the server running?");
         })
         .finally(() => {
           setLoading(false);
         });
     }
   }, [isOpen, code, currentLine, currentSnapshot, currentState, mode]);
+
+  const isLLM = analysis?.source === 'llm';
 
   if (!isOpen) return null;
 
@@ -77,7 +83,11 @@ export default function AIExplainerModal({
               </h2>
               <span className="text-[10px] font-mono text-theme-muted flex items-center gap-1.5">
                 <ShieldCheck size={11} className="text-emerald-400" />
-                Secure Server-Side Context Integration
+                {analysis
+                  ? isLLM
+                    ? `Claude${analysis.model ? ` · ${analysis.model}` : ''} · secure backend`
+                    : 'Deterministic AST static analysis'
+                  : 'Secure server-side analysis'}
               </span>
             </div>
           </div>
@@ -99,8 +109,18 @@ export default function AIExplainerModal({
                 Analyzing AST execution profile, call graphs, and algorithmic complexity...
               </div>
             </div>
+          ) : error ? (
+            <div className="py-12 text-center text-xs font-mono text-red-300/90 space-y-2">
+              <div className="text-red-400 font-bold uppercase tracking-wider">Analysis unavailable</div>
+              <p>{error}</p>
+            </div>
           ) : analysis ? (
             <>
+              {analysis.error && (
+                <div className="text-[11px] font-mono p-2.5 rounded-lg border border-amber-500/25 bg-amber-500/5 text-amber-300/90">
+                  {analysis.error}
+                </div>
+              )}
               {/* Complexity Badges */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3.5 rounded-xl border border-theme-border bg-theme-panel-inner flex items-center justify-between">

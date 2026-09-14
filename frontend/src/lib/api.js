@@ -1,4 +1,5 @@
-const API_URL = 'http://127.0.0.1:8000';
+// Configurable for deployment (Phase 12/13). Falls back to local dev backend.
+const API_URL = import.meta.env?.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export const executeCode = async (code, mode = 'smart') => {
   try {
@@ -141,78 +142,30 @@ export const getExceptions = (snapshots = []) => {
  * @returns {Promise<object>}
  */
 export const explainCode = async (context) => {
-  try {
-    const response = await fetch(`${API_URL}/explain`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        code: context.code || '',
-        current_line: context.currentLine || 0,
-        snapshot: context.snapshot || null,
-        variables: context.variables || {},
-        stack: context.stack || [],
-        mode: context.mode || 'smart'
-      }),
-    });
+  const response = await fetch(`${API_URL}/explain`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      code: context.code || '',
+      current_line: context.currentLine || 0,
+      snapshot: context.snapshot || null,
+      variables: context.variables || {},
+      stack: context.stack || [],
+      mode: context.mode || 'smart'
+    }),
+  });
 
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch {
-    // If backend endpoint is not yet available, provide local structured heuristic analysis
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`Explain failed (${response.status}): ${text}`);
   }
 
-  // Graceful client fallback analyzer when backend AI endpoint is in standby
-  return generateClientAnalysis(context);
+  // The backend always returns a complete analysis object:
+  // either LLM-backed (source: "llm") or the deterministic AST static
+  // analyzer (source: "static-analysis"). No analysis logic lives in the
+  // client anymore — and no API key ever reaches the browser.
+  return await response.json();
 };
-
-/**
- * Heuristic code analysis fallback when external backend LLM is unreachable.
- */
-function generateClientAnalysis({ code, currentLine, snapshot, variables }) {
-  const codeLines = (code || '').split('\n');
-  const hasNestedLoops = /for\s+.*:\s*\n\s+for\s+.*:/m.test(code) || /for\s+.*in.*:\s*.*for\s+.*in/m.test(code);
-  const hasRecursion = (snapshot?.stack && snapshot.stack.length > 2) || /def\s+(\w+)\(.*\):[\s\S]*?\1\(/.test(code);
-  const hasBacktracking = /board\.pop\(\)|\.remove\(|undo/i.test(code);
-
-  let timeComplexity = 'O(n)';
-  let spaceComplexity = 'O(1)';
-  let issue = 'Linear execution path observed.';
-  let optimization = 'Algorithm is operating within standard complexity bounds.';
-  let expectedComplexity = 'O(n)';
-  let optimizedCode = code;
-
-  if (hasNestedLoops) {
-    timeComplexity = 'O(n²)';
-    spaceComplexity = 'O(1)';
-    issue = 'Nested iteration detected. Inner loop repeatedly scans or iterates over the collection for every outer loop element.';
-    optimization = 'Utilize a hash set, dictionary lookup, or two-pointer approach to eliminate redundant inner loop scans.';
-    expectedComplexity = 'O(n) Time, O(n) Space';
-  } else if (hasBacktracking || (hasRecursion && hasNestedLoops)) {
-    timeComplexity = 'O(2ⁿ) / O(N!)';
-    spaceComplexity = 'O(n) Call Stack';
-    issue = 'Exhaustive recursive search with state backtracking explore large permutation state-trees.';
-    optimization = 'Apply memoization/dynamic programming or constraint propagation to prune branches early.';
-    expectedComplexity = 'Pruned sub-exponential branch space';
-  } else if (hasRecursion) {
-    timeComplexity = 'O(n)';
-    spaceComplexity = 'O(n) Recursion Stack';
-    issue = 'Recursive call stack overhead for linear operations.';
-    optimization = 'Consider tail recursion or iterative formulation with an explicit accumulator if stack depth is large.';
-    expectedComplexity = 'O(n) Time, O(1) Space';
-  }
-
-  return {
-    timeComplexity,
-    spaceComplexity,
-    issue,
-    optimization,
-    expectedComplexity,
-    optimizedCode,
-    activeLineInfo: currentLine > 0 ? `Line ${currentLine}: ${codeLines[currentLine - 1] || ''}` : '',
-    contextSummary: `Step ${snapshot?.step ?? 0} in ${snapshot?.function || 'global'} with ${Object.keys(variables || {}).length} active variables.`
-  };
-}
 

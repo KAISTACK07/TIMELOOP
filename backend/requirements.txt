@@ -1,0 +1,10 @@
+# TimeLoop backend dependencies
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+
+# Phase 7 — AI Explainer (optional at runtime).
+# The /explain endpoint works without this installed or without an API key:
+# it falls back to the deterministic AST static analyzer. Install + set
+# ANTHROPIC_API_KEY to enable LLM-backed explanations.
+anthropic>=0.40
