@@ -1,3 +1,4 @@
+import time
 import uuid
 from multiprocessing import Process, Pipe
 
@@ -21,28 +22,54 @@ class ExecutionEngine:
         process.start()
 
         timeout = get_timeout(mode)
-        process.join(timeout)
+        start_time = time.time()
+        
+        result = None
+        while True:
+            if parent_conn.poll(0.05):
+                try:
+                    result = parent_conn.recv()
+                except EOFError:
+                    pass
+                break
+                
+            if time.time() - start_time > timeout:
+                break
+                
+            if not process.is_alive():
+                break
 
         if process.is_alive():
             process.terminate()
             process.join()  # ← CRITICAL
 
-            return {
-                "session_id": str(uuid.uuid4()),
-                "snapshots": [],
-                "variable_history": {},
-                "line_index": {},
-                "truncated": True,
-                "error": "Execution timeout"
-            }
+            if result is None:
+                return {
+                    "session_id": str(uuid.uuid4()),
+                    "snapshots": [],
+                    "variable_history": {},
+                    "line_index": {},
+                    "truncated": True,
+                    "error": "Execution timeout",
+                    "stdout": ""
+                }
 
-        if parent_conn.poll():
-            result = parent_conn.recv()
-        else:
+        process.join()
+        
+        if result is None:
+            # Check one last time in case it exited and flushed simultaneously
+            if parent_conn.poll():
+                try:
+                    result = parent_conn.recv()
+                except EOFError:
+                    pass
+
+        if result is None:
             result = {
                 "snapshots": [],
                 "truncated": True,
-                "error": "Worker terminated (memory limit or crash)"
+                "error": "Worker terminated (memory limit or crash)",
+                "stdout": ""
             }
 
         return {
@@ -52,5 +79,6 @@ class ExecutionEngine:
             "line_index": result.get("line_index", {}),
             "function_calls": result.get("function_calls", []),
             "truncated": result.get("truncated", True),
-            "error": result.get("error")
-}
+            "error": result.get("error"),
+            "stdout": result.get("stdout", "")
+        }

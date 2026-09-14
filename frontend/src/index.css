@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-accent: "Eater", cursive;
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #050505;
+  --color-header: rgba(10, 10, 10, 0.9);
+  --color-panel: rgba(20, 20, 20, 0.6);
+  --color-panel-inner: rgba(10, 10, 10, 0.8);
+  --color-timeline: rgba(10, 10, 10, 0.8);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text: #e5e5e5;
+  --color-muted: #888888;
+  --color-accent: #ffffff;
+  --color-accent-dim: rgba(255, 255, 255, 0.1);
+  --color-accent-glow: rgba(255, 255, 255, 0.5);
+  --color-text-glow: rgba(255, 255, 255, 0.5);
+  --color-hover: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="light"] {
+  --color-bg: #f5f5f5;
+  --color-header: rgba(255, 255, 255, 0.9);
+  --color-panel: rgba(255, 255, 255, 0.8);
+  --color-panel-inner: rgba(240, 240, 240, 0.8);
+  --color-timeline: rgba(255, 255, 255, 0.9);
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-text: #1a1a1a;
+  --color-muted: #666666;
+  --color-accent: #000000;
+  --color-accent-dim: rgba(0, 0, 0, 0.05);
+  --color-accent-glow: rgba(0, 0, 0, 0.3);
+  --color-text-glow: rgba(0, 0, 0, 0.2);
+  --color-hover: rgba(0, 0, 0, 0.05);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom Tailwind utility classes mapped to CSS variables */
+@layer utilities {
+  .bg-theme-bg { background-color: var(--color-bg); }
+  .bg-theme-header { background-color: var(--color-header); }
+  .bg-theme-panel { background-color: var(--color-panel); }
+  .bg-theme-panel-inner { background-color: var(--color-panel-inner); }
+  .bg-theme-timeline { background-color: var(--color-timeline); }
+  .bg-theme-accent { background-color: var(--color-accent); }
+  .bg-theme-accent-dim { background-color: var(--color-accent-dim); }
+  .bg-theme-hover { background-color: var(--color-hover); }
+  
+  .border-theme-border { border-color: var(--color-border); }
+  .border-theme-accent { border-color: var(--color-accent); }
+  
+  .bg-theme-text { background-color: var(--color-text); }
+  .bg-theme-muted { background-color: var(--color-muted); }
+
+  .text-theme-text { color: var(--color-text); }
+  .text-theme-muted { color: var(--color-muted); }
+  .text-theme-accent { color: var(--color-accent); }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}

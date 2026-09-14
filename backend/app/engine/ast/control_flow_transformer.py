@@ -191,3 +191,55 @@ class ControlFlowTransformerMixin(BaseInstrumenterMixin):
         )
         ast.copy_location(log_call, node)
         return [log_call, node]
+
+    # --- Try / Except ---
+    def visit_Try(self, node):
+        node.body = self._visit_stmt_list(node.body)
+        node.orelse = self._visit_stmt_list(node.orelse)
+        node.finalbody = self._visit_stmt_list(node.finalbody)
+
+        for handler in node.handlers:
+            handler.body = self._visit_stmt_list(handler.body)
+            handler_type = self._exception_type_label(handler.type)
+            log_call = ast.Expr(
+                value=ast.Call(
+                    func=ast.Name(id="__exception_handled__", ctx=ast.Load()),
+                    args=[
+                        ast.Constant(value=handler_type),
+                        ast.Constant(value=handler.lineno),
+                    ],
+                    keywords=[]
+                )
+            )
+            ast.copy_location(log_call, handler)
+            handler.body.insert(0, log_call)
+
+        return node
+
+    def _visit_stmt_list(self, statements):
+        visited = []
+        for stmt in statements:
+            res = self.visit(stmt)
+            if isinstance(res, list):
+                visited.extend(res)
+            elif res is not None:
+                visited.append(res)
+        return visited
+
+    def _exception_type_label(self, node):
+        if node is None:
+            return "BaseException"
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute):
+            parts = []
+            curr = node
+            while isinstance(curr, ast.Attribute):
+                parts.append(curr.attr)
+                curr = curr.value
+            if isinstance(curr, ast.Name):
+                parts.append(curr.id)
+            return ".".join(reversed(parts))
+        if isinstance(node, ast.Tuple):
+            return ", ".join(self._exception_type_label(elt) for elt in node.elts)
+        return type(node).__name__

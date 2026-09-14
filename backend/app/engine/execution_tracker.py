@@ -32,8 +32,6 @@ REDUCED MODE SUPPRESSION:
 
 from __future__ import annotations
 
-import sys
-
 from .runtime.stack_manager import StackManager
 from .runtime.state_manager import StateManager
 from .runtime.event_logger import EventLogger
@@ -43,19 +41,7 @@ from .runtime.semantic_logger import SemanticLogger
 from .runtime.semantic_summaries import get_summary
 from .modes.factory import get_mode_strategy
 from .modes.mode_router import get_event_filter
-
-
-def safe_serialize(value):
-    """Convert a Python value into a JSON-safe representation."""
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return value
-    if isinstance(value, (list, tuple)):
-        return [safe_serialize(item) for item in value]
-    if isinstance(value, dict):
-        return {str(k): safe_serialize(v) for k, v in value.items()}
-    if isinstance(value, set):
-        return [safe_serialize(item) for item in value]
-    return str(value)
+from .serializer import safe_serialize
 
 
 class ExecutionTracker:
@@ -148,6 +134,38 @@ class ExecutionTracker:
                 })
                 self.line_index.setdefault(def_line_no, []).append(self.logger.step - 1)
 
+    def handle_generator_call(self, func_name: str, def_line_no: int,
+                              call_site_line: int, local_vars: dict | None = None):
+        """Record generator-object creation without making its frame active."""
+        if self._suppress:
+            return
+
+        self._check_limits()
+        stack_snapshot = list(self.stack.call_stack)
+        if not stack_snapshot or stack_snapshot[-1] != func_name:
+            stack_snapshot = stack_snapshot + [func_name]
+        scope = dict(local_vars) if local_vars else {}
+
+        if self._should_log():
+            exec_line, call_site = self.stack.get_execution_line(def_line_no)
+            accepted = self.logger.record(
+                "call",
+                exec_line,
+                delta={k: safe_serialize(v) for k, v in scope.items()},
+                call_site_line=call_site_line if call_site_line is not None else call_site,
+                function_override=func_name,
+                stack_override=stack_snapshot,
+                locals_override=scope,
+            )
+            if accepted:
+                self.function_calls.append({
+                    "name": func_name,
+                    "line_no": def_line_no,
+                    "call_site_line": call_site_line if call_site_line is not None else call_site,
+                    "step": self.logger.step - 1,
+                })
+                self.line_index.setdefault(def_line_no, []).append(self.logger.step - 1)
+
     def handle_return(self, name: str, value, line_no: int):
         """Function return event.
 
@@ -169,6 +187,31 @@ class ExecutionTracker:
                 self.line_index.setdefault(line_no, []).append(self.logger.step - 1)
         self.limits.pop_depth()
         self.stack.pop_frame()
+
+    def handle_yield(self, value, line_no: int, func_name: str):
+        """Record a generator yield at the point Python evaluates it."""
+        if self._suppress:
+            return value
+
+        self._check_limits()
+        if self._should_log():
+            exec_line, call_site = self.stack.get_execution_line(line_no)
+            stack_snapshot = list(self.stack.call_stack)
+            if not stack_snapshot or stack_snapshot[-1] != func_name:
+                stack_snapshot = stack_snapshot + [func_name]
+            accepted = self.logger.record(
+                "yield",
+                exec_line,
+                delta={},
+                call_site_line=call_site,
+                value=safe_serialize(value),
+                function_override=func_name,
+                stack_override=stack_snapshot,
+                locals_override={},
+            )
+            if accepted:
+                self.line_index.setdefault(line_no, []).append(self.logger.step - 1)
+        return value
 
     def _resolve_exception_line(self, exc: BaseException, fallback_line: int) -> int:
         tb = exc.__traceback__
@@ -242,6 +285,24 @@ class ExecutionTracker:
                 self.line_index.setdefault(unwind_line, []).append(self.logger.step - 1)
         self.limits.pop_depth()
         self.stack.pop_frame()
+
+    def handle_exception_handled(self, exception_type: str, line_no: int):
+        """Record entry into a Python-selected except handler."""
+        if self._suppress:
+            return
+
+        self._check_limits()
+        if self._should_log():
+            exec_line, call_site = self.stack.get_execution_line(line_no)
+            accepted = self.logger.record(
+                "exception_handled",
+                exec_line,
+                delta={},
+                call_site_line=call_site,
+                value={"exception_type": exception_type},
+            )
+            if accepted:
+                self.line_index.setdefault(line_no, []).append(self.logger.step - 1)
 
     def handle_if_chain(self, branch_name: str, internal_line: int, line_no: int):
         """If/elif/else branch evaluation event."""

@@ -3,6 +3,20 @@ import uuid
 from .base_transformer import BaseInstrumenterMixin
 
 class ExpressionTransformerMixin(BaseInstrumenterMixin):
+    def visit_FunctionDef(self, node):
+        prev_func = getattr(self, "_current_function", "global")
+        self._current_function = node.name
+        self.generic_visit(node)
+        self._current_function = prev_func
+        return node
+
+    def visit_AsyncFunctionDef(self, node):
+        prev_func = getattr(self, "_current_function", "global")
+        self._current_function = node.name
+        self.generic_visit(node)
+        self._current_function = prev_func
+        return node
+
     # --- Assign ---
     def visit_Assign(self, node):
         node = self.generic_visit(node)
@@ -110,3 +124,20 @@ class ExpressionTransformerMixin(BaseInstrumenterMixin):
         ast.copy_location(new_return, node)
         
         return [assign_tmp, return_log, new_return]
+
+    # --- Yield ---
+    def visit_Yield(self, node):
+        node = self.generic_visit(node)
+        yielded_value = node.value if node.value is not None else ast.Constant(value=None)
+        yield_log = ast.Call(
+            func=ast.Name(id="__yield__", ctx=ast.Load()),
+            args=[
+                yielded_value,
+                ast.Constant(value=node.lineno),
+                ast.Constant(value=getattr(self, "_current_function", "global")),
+            ],
+            keywords=[]
+        )
+        ast.copy_location(yield_log, node)
+        node.value = yield_log
+        return node

@@ -9,6 +9,10 @@ must NOT implement their own protection; they delegate to this module.
 from ..limits import MAX_STEPS, MAX_DEPTH
 
 
+class ExecutionLimitExceeded(Exception):
+    pass
+
+
 class ExecutionLimits:
     """Track step count & recursion depth; raise on violation."""
 
@@ -25,7 +29,7 @@ class ExecutionLimits:
         self.current_step += 1
         if self.current_step >= self.max_steps:
             self.truncated = True
-            raise StopIteration("Max execution steps exceeded")
+            raise ExecutionLimitExceeded("Max execution steps exceeded")
 
     # ── depth gate ───────────────────────────────────────────
     def push_depth(self) -> None:
@@ -33,7 +37,7 @@ class ExecutionLimits:
         self.current_depth += 1
         if self.current_depth > self.max_depth:
             self.truncated = True
-            raise StopIteration("Max call depth exceeded")
+            raise ExecutionLimitExceeded("Max call depth exceeded")
 
     def pop_depth(self) -> None:
         """Called on function return."""

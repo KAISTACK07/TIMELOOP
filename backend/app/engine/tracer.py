@@ -1,5 +1,6 @@
 import sys
 from .serializer import safe_serialize
+from .runtime.execution_limits import ExecutionLimitExceeded
 
 DEFAULT_MAX_STEPS = 20000
 DEFAULT_MAX_DEPTH = 1000
@@ -25,7 +26,7 @@ class Tracer:
             depth += 1
             if depth > self.max_depth:
                 self.truncated = True
-                raise StopIteration("Max call depth exceeded")
+                raise ExecutionLimitExceeded("Max call depth exceeded")
             f = f.f_back
 
     def compute_delta(self, prev, curr):
@@ -53,7 +54,7 @@ class Tracer:
         if self.mode == "fast":
             if self.step > 2000:
                 self.truncated = True
-                raise StopIteration("Fast mode step limit reached")
+                raise ExecutionLimitExceeded("Fast mode step limit reached")
         if event == "return" and frame.f_code.co_name == "<module>":
             event = "line"
 
@@ -201,6 +202,6 @@ class Tracer:
         #  Safety
         if self.step >= self.max_steps:
             self.truncated = True
-            raise StopIteration("Max steps exceeded")
+            raise ExecutionLimitExceeded("Max steps exceeded")
 
         return self.trace

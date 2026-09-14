@@ -564,6 +564,146 @@ CORS is configured in `backend/app/main.py` to allow all origins (`*`) for devel
 
 ---
 
+## Smart Mode Advanced Construct Guarantees (Phase 5)
+
+These guarantees define what Smart Mode currently commits to for advanced Python constructs. The goal is replay integrity, not fake visibility.
+
+### 1) Generators / `yield`
+- Classification: partially supported
+- Guaranteed:
+  - Native generator semantics execute correctly.
+  - `next(gen)` call ordering is deterministic.
+  - Top-level state deltas around generator consumption are deterministic.
+- Not guaranteed:
+  - Generator-frame ownership across suspension/resume is not replay-faithful.
+  - `yield` is not a first-class replay event.
+  - `yield from` attribution can collapse onto caller-visible line events.
+- Replay integrity risk: medium
+
+### 2) `async` / `await`
+- Classification: partially supported
+- Guaranteed:
+  - Native coroutine objects and await execution are preserved by Python runtime.
+  - Deterministic replay ordering is possible for simple direct coroutine stepping.
+- Not guaranteed:
+  - Event-loop scheduling semantics are not represented.
+  - Suspension/resume boundaries are not modeled as replay-owned events.
+  - Async stack ownership is not a formal guarantee.
+- Replay integrity risk: high
+
+### 3) Decorators
+- Classification: partially supported
+- Guaranteed:
+  - Wrapper execution is visible when wrapper calls are instrumented.
+  - Native decorated-call behavior is preserved.
+- Not guaranteed:
+  - Wrapped-function identity attribution is not stable (wrapper/local names may appear instead of original callable identity).
+  - Nested decorators can produce attribution ambiguity between wrapper layers.
+- Replay integrity risk: medium
+
+### 4) Closures / nested functions
+- Classification: partially supported
+- Guaranteed:
+  - Lexical capture and `nonlocal` mutation execute natively and deterministically.
+  - Nested function calls are visible.
+- Not guaranteed:
+  - Captured-variable ownership is not explicitly modeled as closure-cell events.
+  - Attribution may flatten closure mutations to inner-frame line events only.
+- Replay integrity risk: medium
+
+### 5) Lambda execution
+- Classification: transparent / intentionally uninstrumented (fine-grain)
+- Guaranteed:
+  - Lambda execution semantics are native Python semantics.
+  - Lambda invocation can appear as normal callable events.
+- Not guaranteed:
+  - Lambda internals are not expanded into dedicated semantic event families.
+  - No special lambda-level ownership model beyond generic call/line handling.
+- Replay integrity risk: low
+
+### 6) Comprehensions
+- Classification: transparent / intentionally uninstrumented (loop-internal detail)
+- Guaranteed:
+  - Native comprehension results are deterministic and preserved.
+  - Assignment of comprehension result is replay-visible at statement level.
+- Not guaranteed:
+  - Per-iteration comprehension body/branch visibility is not provided.
+  - Generator-expression internal stepping is not modeled.
+- Replay integrity risk: low
+
+### 7) Context managers (`with`)
+- Classification: partially supported
+- Guaranteed:
+  - Native `__enter__`/body/`__exit__` ordering executes correctly.
+  - Nested `with` execution order is deterministic.
+- Not guaranteed:
+  - Replay attribution for dunder calls can be ambiguous (for example, `__exit__` may appear without robust frame ownership metadata).
+  - Exception-interaction semantics are not fully normalized as dedicated context-manager semantic events.
+- Replay integrity risk: medium
+
+---
+
+## Smart Mode Replay Invariants (Phase 5)
+
+These are the formal replay invariants validated for Smart Mode. They define the replay contract used by Phase 6 checkpoint reconstruction planning.
+
+### 1) Timeline determinism
+- Classification: stable
+- Guarantee:
+  - Re-running identical code produces identical replay event structure (event type order, step order, branch chronology, stack chronology), excluding volatile object-address text in repr fallbacks.
+
+### 2) Stack invariants
+- Classification: stable
+- Guarantee:
+  - Stack depth transitions are consistent and bounded by call/unwind semantics.
+  - Completed timelines end with `['global']` stack ownership.
+  - Exception paths preserve unwind visibility without leaked frames in validated cases.
+
+### 3) Event ordering invariants
+- Classification: stable
+- Guarantee:
+  - Normal paths preserve call/line/control/return chronology.
+  - Exception paths preserve exception and unwind sequencing in deterministic order.
+  - Loop/control-flow events remain chronologically stable under nested interactions.
+
+### 4) Replay reconstruction consistency
+- Classification: partially stable
+- Guarantee:
+  - Delta stream, variable history, and snapshot ordering reconstruct semantically consistent final replay state in validated domains.
+- Limitation:
+  - Under timeout-truncated executions, reconstruction is only valid for the retained prefix timeline.
+
+### 5) Replay index integrity
+- Classification: stable
+- Guarantee:
+  - `step` is strictly monotonic.
+  - `line_index` points to valid steps and matching `line_no`.
+  - `variable_history` step references align with snapshot deltas.
+
+### 6) Cross-domain interactions
+- Classification: partially stable
+- Guarantee:
+  - Invariants remain stable for validated combinations:
+    - recursion + exceptions
+    - loops + branches + exceptions
+    - nested mutable state + recursion (bounded depth)
+    - decorators + closures + branches
+- Limitation:
+  - High-stress inputs may hit execution timeout; this is a scalability boundary, not a replay-ordering contract change.
+
+### Phase 6 dependency notes
+- Phase 6 depends directly on:
+  - deterministic step/event chronology
+  - valid stack ownership transitions
+  - stable index mappings (`line_index`, `variable_history`)
+  - canonical delta-driven reconstruction semantics
+- Must remain unchanged before Phase 6 architecture work:
+  - replay-state ownership model
+  - stack/event ownership boundaries
+  - AST/runtime/transport separation
+
+---
+
 ## Contributing
 
 1. Fork the repository.

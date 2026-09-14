@@ -32,3 +32,4 @@ class ExecutionResponse(BaseModel):
     function_calls: Optional[List[Dict[str, Any]]] = []
     truncated: bool
     error: Optional[str] = None
+    stdout: Optional[str] = ""

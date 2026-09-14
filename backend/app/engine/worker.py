@@ -10,12 +10,14 @@ Supports three modes:
 import sys
 import inspect
 import pickle
+import io
 
 from .tracer import Tracer
 from .sandbox import get_sandbox_globals
 from .ast_instrumenter import instrument_code
 from .execution_tracker import ExecutionTracker
 from .modes.mode_router import normalise_mode, get_execution_strategy, build_response
+from .runtime.execution_limits import ExecutionLimitExceeded
 
 
 def _to_transport_safe(value):
@@ -54,6 +56,10 @@ def worker_main(code, conn, mode):
     line_index = {}
     function_calls = []
     truncated = False
+
+    stdout_buffer = io.StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = stdout_buffer
 
     try:
         # ──────────────────────────────────────────────
@@ -129,6 +135,15 @@ def worker_main(code, conn, mode):
                         except Exception:
                             pass  # Builtins or unsupported callables
 
+                        if inspect.isgeneratorfunction(__func):
+                            tracker.handle_generator_call(
+                                __name,
+                                def_line_no,
+                                __call_site_line,
+                                local_vars,
+                            )
+                            return __func(*args, **kwargs)
+
                         tracker.handle_call(__name, args, kwargs, def_line_no, __call_site_line, local_vars)
 
                     success = False
@@ -163,7 +178,9 @@ def worker_main(code, conn, mode):
             sandbox_globals["__log__"] = tracker.handle_log
             sandbox_globals["__call__"] = call_wrapper
             sandbox_globals["__return__"] = tracker.handle_return
+            sandbox_globals["__yield__"] = tracker.handle_yield
             sandbox_globals["__log_if_chain__"] = tracker.handle_if_chain
+            sandbox_globals["__exception_handled__"] = tracker.handle_exception_handled
             sandbox_globals["__loop_enter__"] = tracker.handle_loop_enter
             sandbox_globals["__loop_exit__"] = tracker.handle_loop_exit
             sandbox_globals["__for__"] = tracker.handle_for
@@ -181,7 +198,7 @@ def worker_main(code, conn, mode):
             function_calls = result["function_calls"]
             truncated = result["truncated"]
 
-    except StopIteration:
+    except ExecutionLimitExceeded:
         truncated = True
         if strategy == "settrace" and 'tracer' in locals():
             snapshots = tracer.snapshots
@@ -210,12 +227,14 @@ def worker_main(code, conn, mode):
 
     finally:
         sys.settrace(None)
+        sys.stdout = old_stdout
         conn.send(_to_transport_safe({
             "snapshots": snapshots,
             "variable_history": variable_history,
             "line_index": line_index,
             "function_calls": function_calls,
             "truncated": truncated,
-            "error": error
+            "error": error,
+            "stdout": stdout_buffer.getvalue()
         }))
         conn.close()

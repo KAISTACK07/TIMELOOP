@@ -2,6 +2,8 @@ from typing import Dict, Any, List
 import copy
 import pickle
 
+from ..serializer import safe_serialize
+
 
 class StateManager:
     def __init__(self):
@@ -27,7 +29,7 @@ class StateManager:
             return frozen
         except Exception:
             # Keep execution stable for unsupported runtime objects.
-            return repr(value)
+            return safe_serialize(value)
 
     def has_delta(self, current_scope: Dict[str, Any]) -> bool:
         for var_name, current_val in current_scope.items():
